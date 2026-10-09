@@ -1,0 +1,220 @@
+<section class="card form-card">
+  <header class="card-header">
+    <div class="header-top">
+      <span class="badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+        TP 02 • Reactive Forms
+      </span>
+      <span class="header-tag">Validation Côté Client & Structuration Multi-Composants</span>
+    </div>
+    <h1>Déclarer une pollution</h1>
+    <p class="subtitle">Remplissez ce formulaire pour signaler une atteinte à l'environnement observée sur le terrain.</p>
+  </header>
+
+  <!-- Alerte d'erreur globale -->
+  @if (errorMessage) {
+  <div class="alert error-alert" role="alert">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <span>{{ errorMessage }}</span>
+  </div>
+  }
+
+  <!-- Message de succès géolocalisation -->
+  @if (locationSuccessMessage) {
+  <div class="alert success-alert" role="alert">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    <span>{{ locationSuccessMessage }}</span>
+  </div>
+  }
+
+  <form [formGroup]="pollutionForm" (ngSubmit)="onSubmit()" novalidate>
+    <div class="form-grid">
+      <!-- SECTION 1 : INFORMATIONS GÉNÉRALES -->
+      <div class="form-section-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        <span>Nature du signalement</span>
+      </div>
+
+      <!-- Champ 1 : Titre de la pollution (texte, requis) -->
+      <div class="input-group col-span-2" [class.invalid]="isInvalid('titre')" [class.valid]="isValid('titre')">
+        <label for="titre">Titre de la pollution <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <input type="text" id="titre" formControlName="titre" placeholder="Ex: Décharge illégale de plastiques en bord de rivière" />
+        </div>
+        @if (isInvalid('titre')) {
+        <span class="error-msg">
+          @if (f['titre'].errors?.['required']) { Le titre de la pollution est obligatoire. }
+          @else if (f['titre'].errors?.['minlength']) { Le titre doit comporter au moins 3 caractères. }
+          @else if (f['titre'].errors?.['maxlength']) { Le titre ne peut dépasser 100 caractères. }
+        </span>
+        }
+      </div>
+
+      <!-- Champ 2 : Type de pollution (liste déroulante, requis) -->
+      <div class="input-group" [class.invalid]="isInvalid('type')" [class.valid]="isValid('type')">
+        <label for="type">Type de pollution <span class="required">*</span></label>
+        <div class="input-wrapper select-wrapper">
+          <select id="type" formControlName="type" class="custom-select">
+            <option value="" disabled selected>-- Sélectionnez un type --</option>
+            @for (t of pollutionTypes; track t) {
+            <option [value]="t">{{ t }}</option>
+            }
+          </select>
+        </div>
+        @if (isInvalid('type')) {
+        <span class="error-msg">Veuillez sélectionner un type de pollution.</span>
+        }
+      </div>
+
+      <!-- Champ 3 : Description (textarea, requis) -->
+      <div class="input-group col-span-3" [class.invalid]="isInvalid('description')" [class.valid]="isValid('description')">
+        <div class="label-row">
+          <label for="description">Description <span class="required">*</span></label>
+          <span class="char-count" [class.limit]="(f['description'].value?.length || 0) > 950">
+            {{ f['description'].value?.length || 0 }} / 1000
+          </span>
+        </div>
+        <div class="input-wrapper">
+          <textarea id="description" formControlName="description" rows="4"
+            placeholder="Décrivez précisément la nature, l'ampleur et les circonstances de la pollution observée..."></textarea>
+        </div>
+        @if (isInvalid('description')) {
+        <span class="error-msg">
+          @if (f['description'].errors?.['required']) { La description est obligatoire. }
+          @else if (f['description'].errors?.['minlength']) { La description doit contenir au moins 10 caractères. }
+          @else if (f['description'].errors?.['maxlength']) { La description ne peut dépasser 1000 caractères. }
+        </span>
+        }
+      </div>
+
+      <!-- SECTION 2 : LOCALISATION ET TEMPORALITÉ -->
+      <div class="form-section-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        <span>Localisation et date d'observation</span>
+        <button type="button" class="btn-geo-quick" (click)="getCurrentLocation()" [disabled]="isLocating"
+          title="Obtenir ma position actuelle">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+          </svg>
+          <span>{{ isLocating ? 'Géolocalisation...' : 'Ma position GPS' }}</span>
+        </button>
+      </div>
+
+      <!-- Champ 4 : Date de l'observation (date, requis) -->
+      <div class="input-group" [class.invalid]="isInvalid('dateObservation')" [class.valid]="isValid('dateObservation')">
+        <label for="dateObservation">Date de l'observation <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <input type="date" id="dateObservation" formControlName="dateObservation" />
+        </div>
+        @if (isInvalid('dateObservation')) {
+        <span class="error-msg">
+          @if (f['dateObservation'].errors?.['required']) { La date d'observation est obligatoire. }
+          @else if (f['dateObservation'].errors?.['invalidDate']) { Date invalide. }
+          @else if (f['dateObservation'].errors?.['futureDate']) { La date ne peut pas être dans le futur. }
+        </span>
+        }
+      </div>
+
+      <!-- Champ 5 : Lieu (texte, requis) -->
+      <div class="input-group col-span-2" [class.invalid]="isInvalid('lieu')" [class.valid]="isValid('lieu')">
+        <label for="lieu">Lieu / Adresse <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <input type="text" id="lieu" formControlName="lieu" placeholder="Ex: Berges de la Seine, Quai de Bercy, Paris" />
+        </div>
+        @if (isInvalid('lieu')) {
+        <span class="error-msg">
+          @if (f['lieu'].errors?.['required']) { Le lieu est obligatoire. }
+          @else if (f['lieu'].errors?.['minlength']) { Au moins 2 caractères requis. }
+        </span>
+        }
+      </div>
+
+      <!-- Champ 6 : Latitude (nombre, requis) -->
+      <div class="input-group" [class.invalid]="isInvalid('latitude')" [class.valid]="isValid('latitude')">
+        <label for="latitude">Latitude <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <input type="number" step="0.000001" id="latitude" formControlName="latitude" placeholder="Ex: 48.8566" />
+        </div>
+        @if (isInvalid('latitude')) {
+        <span class="error-msg">
+          @if (f['latitude'].errors?.['required']) { La latitude est requise. }
+          @else if (f['latitude'].errors?.['min'] || f['latitude'].errors?.['max'] || f['latitude'].errors?.['pattern']) {
+            Nombre valide entre -90 et 90.
+          }
+        </span>
+        }
+      </div>
+
+      <!-- Champ 7 : Longitude (nombre, requis) -->
+      <div class="input-group" [class.invalid]="isInvalid('longitude')" [class.valid]="isValid('longitude')">
+        <label for="longitude">Longitude <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <input type="number" step="0.000001" id="longitude" formControlName="longitude" placeholder="Ex: 2.3522" />
+        </div>
+        @if (isInvalid('longitude')) {
+        <span class="error-msg">
+          @if (f['longitude'].errors?.['required']) { La longitude est requise. }
+          @else if (f['longitude'].errors?.['min'] || f['longitude'].errors?.['max'] || f['longitude'].errors?.['pattern']) {
+            Nombre valide entre -180 et 180.
+          }
+        </span>
+        }
+      </div>
+
+      <!-- Champ 8 : Photo (URL) (texte, optionnel) -->
+      <div class="input-group" [class.invalid]="isInvalid('photoUrl')" [class.valid]="isValid('photoUrl') && f['photoUrl'].value">
+        <label for="photoUrl">Photo (URL) <span class="optional-tag">(optionnel)</span></label>
+        <div class="input-wrapper">
+          <input type="url" id="photoUrl" formControlName="photoUrl" placeholder="https://exemple.com/photo.jpg" />
+        </div>
+        @if (isInvalid('photoUrl')) {
+        <span class="error-msg">Veuillez renseigner une URL valide (ex: http://... ou https://...).</span>
+        }
+      </div>
+    </div>
+
+    <!-- Actions du Formulaire -->
+    <div class="form-actions-split">
+      <button type="button" class="btn btn-outline-subtle" (click)="fillSampleData()" title="Pré-remplir des données de démonstration">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        <span>Exemple de test</span>
+      </button>
+
+      <div class="main-buttons">
+        <button type="button" class="btn btn-outline" (click)="reset()">
+          <span>Réinitialiser</span>
+        </button>
+
+        <button type="submit" class="btn btn-primary btn-submit">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Déclarer</span>
+        </button>
+      </div>
+    </div>
+  </form>
+</section>

@@ -1,0 +1,219 @@
+.form-card {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.col-span-2 {
+  grid-column: span 2;
+}
+
+.col-span-3 {
+  grid-column: span 3;
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.char-count {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.char-count.limit {
+  color: #fbbf24;
+}
+
+.optional-tag {
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 400;
+  margin-left: 0.3rem;
+}
+
+/* Custom Select */
+.select-wrapper {
+  position: relative;
+}
+
+.custom-select {
+  width: 100%;
+  padding: 0.75rem 2.2rem 0.75rem 1rem;
+  background-color: #143a2b;
+  border: 2px solid #6ee7b7;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236ee7b7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 16px;
+}
+
+.custom-select:focus {
+  background-color: #184633;
+  border-color: #a7f3d0;
+  box-shadow: 0 0 0 4px rgba(167, 243, 208, 0.45);
+}
+
+.custom-select option {
+  background-color: #0f2e21;
+  color: #ffffff;
+  padding: 0.5rem;
+}
+
+/* Textarea */
+textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: #143a2b;
+  border: 2px solid #6ee7b7;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  outline: none;
+  resize: vertical;
+  min-height: 95px;
+  box-sizing: border-box;
+}
+
+textarea::placeholder {
+  color: #94a3b8;
+}
+
+textarea:focus {
+  background-color: #184633;
+  border-color: #a7f3d0;
+  box-shadow: 0 0 0 4px rgba(167, 243, 208, 0.45);
+}
+
+/* Validation states on textarea & select */
+.input-group.invalid textarea,
+.input-group.invalid select {
+  border-color: #fecdd3 !important;
+  background-color: #38191d !important;
+  box-shadow: 0 0 0 4px rgba(254, 205, 211, 0.4), 0 0 14px rgba(254, 205, 211, 0.3) !important;
+}
+
+.input-group.valid textarea,
+.input-group.valid select {
+  border-color: #6ee7b7 !important;
+}
+
+/* Bouton GPS rapide */
+.btn-geo-quick {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  border-radius: 6px;
+  color: #a7f3d0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-geo-quick:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.3);
+  color: #ffffff;
+  border-color: #34d399;
+}
+
+.btn-geo-quick:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.success-alert {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border: 2px solid #34d399 !important;
+  color: #a7f3d0 !important;
+}
+
+/* Actions */
+.form-actions-split {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.main-buttons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-outline-subtle {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #cbd5e1;
+  font-size: 0.88rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-outline-subtle:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.btn-submit {
+  min-width: 170px;
+}
+
+@media (max-width: 900px) {
+  .col-span-2, .col-span-3 {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .col-span-2, .col-span-3 {
+    grid-column: span 1;
+  }
+  .form-actions-split {
+    flex-direction: column-reverse;
+  }
+  .main-buttons {
+    width: 100%;
+    flex-direction: column;
+  }
+  .btn-outline-subtle, .main-buttons .btn {
+    width: 100%;
+  }
+}
