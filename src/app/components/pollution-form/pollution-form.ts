@@ -55,8 +55,6 @@ export class PollutionFormComponent implements OnInit {
   pollutionForm!: FormGroup;
   isSubmittedAttempt = false;
   errorMessage = '';
-  isLocating = false;
-  locationSuccessMessage = '';
 
   readonly pollutionTypes: PollutionType[] = [
     'Plastique',
@@ -139,37 +137,6 @@ export class PollutionFormComponent implements OnInit {
     return !!(control && control.valid && control.touched);
   }
 
-  // Géolocalisation automatique (aide à la saisie des coordonnées)
-  getCurrentLocation(): void {
-    if (!navigator.geolocation) {
-      this.errorMessage = "La géolocalisation n'est pas supportée par votre navigateur.";
-      return;
-    }
-
-    this.isLocating = true;
-    this.locationSuccessMessage = '';
-    this.errorMessage = '';
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        this.pollutionForm.patchValue({
-          latitude: parseFloat(position.coords.latitude.toFixed(6)),
-          longitude: parseFloat(position.coords.longitude.toFixed(6)),
-        });
-        this.pollutionForm.get('latitude')?.markAsTouched();
-        this.pollutionForm.get('longitude')?.markAsTouched();
-        this.isLocating = false;
-        this.locationSuccessMessage = 'Coordonnées GPS détectées avec succès !';
-        setTimeout(() => (this.locationSuccessMessage = ''), 4000);
-      },
-      (err) => {
-        this.isLocating = false;
-        this.errorMessage = `Impossible d'obtenir la position GPS (${err.message}). Veuillez renseigner manuellement.`;
-      },
-      { timeout: 10000, enableHighAccuracy: true }
-    );
-  }
-
   // Remplissage rapide d'un exemple pour faciliter la correction ou le test
   fillSampleData(): void {
     this.pollutionForm.setValue({
@@ -226,6 +193,5 @@ export class PollutionFormComponent implements OnInit {
     });
     this.isSubmittedAttempt = false;
     this.errorMessage = '';
-    this.locationSuccessMessage = '';
   }
 }

@@ -246,12 +246,17 @@ label {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 /* CHAMPS DE SAISIE : CONTOUR VERT CLAIR PERMANENT (#6ee7b7) */
 input[type="text"],
 input[type="password"],
-input[type="email"] {
+input[type="email"],
+input[type="date"],
+input[type="number"],
+input[type="url"],
+input {
   width: 100% !important;
   padding: 0.75rem 1rem !important;
   background-color: #143a2b !important;
@@ -264,6 +269,7 @@ input[type="email"] {
   font-weight: 500 !important;
   outline: none !important;
   box-sizing: border-box !important;
+  color-scheme: dark;
 }
 
 input::placeholder {
