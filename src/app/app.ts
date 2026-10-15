@@ -1,6 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
+import { PollutionFormComponent } from './components/pollution-form/pollution-form';
+import { PollutionRecapComponent } from './components/pollution-recap/pollution-recap';
+import { Pollution } from './models/pollution.model';
 
 export interface UserSignup {
   login: string;
@@ -14,12 +17,45 @@ export interface UserSignup {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    PollutionFormComponent,
+    PollutionRecapComponent,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App {
-  // Modèle de données lié au formulaire via [(ngModel)]
+  // Onglet actif : 'tp2-pollution' (par défaut) ou 'tp1-signup'
+  activeTab: 'tp2-pollution' | 'tp1-signup' = 'tp2-pollution';
+
+  // ==========================================
+  // ÉTAT TP 02 : DÉCLARATION POLLUTION (REACTIVE FORMS)
+  // ==========================================
+  isPollutionSubmitted = false;
+  currentPollution: Pollution | null = null;
+
+  onPollutionSubmitted(pollutionData: Pollution): void {
+    this.currentPollution = pollutionData;
+    this.isPollutionSubmitted = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  onEditPollution(): void {
+    this.isPollutionSubmitted = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  onResetPollution(): void {
+    this.currentPollution = null;
+    this.isPollutionSubmitted = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ==========================================
+  // ÉTAT TP 01 : INSCRIPTION UTILISATEUR (TEMPLATE FORMS)
+  // ==========================================
   user: UserSignup = {
     login: '',
     password: '',
@@ -29,51 +65,44 @@ export class App {
     email: '',
   };
 
-  // État de soumission du formulaire
-  isSubmitted = false;
+  isUserSubmitted = false;
   showPassword = false;
-  errorMessage = '';
+  userErrorMessage = '';
 
-  // Vérification de la correspondance des mots de passe
   passwordsMatch(): boolean {
     if (!this.user.password || !this.user.confirmPassword) {
-      return true; // Ne pas afficher d'erreur prématurée si l'un est vide
+      return true;
     }
     return this.user.password === this.user.confirmPassword;
   }
 
-  // Soumission du formulaire (appelé par (ngSubmit)="onSubmit(signupForm)")
-  onSubmit(form: NgForm): void {
-    this.errorMessage = '';
+  onUserSubmit(form: NgForm): void {
+    this.userErrorMessage = '';
 
     if (form.invalid) {
-      this.errorMessage = 'Veuillez remplir correctement tous les champs obligatoires.';
+      this.userErrorMessage = 'Veuillez remplir correctement tous les champs obligatoires.';
       return;
     }
 
     if (!this.passwordsMatch()) {
-      this.errorMessage = 'Les mots de passe ne correspondent pas.';
+      this.userErrorMessage = 'Les mots de passe ne correspondent pas.';
       return;
     }
 
-    // Validation réussie -> Affichage de la vue récapitulative
-    this.isSubmitted = true;
+    this.isUserSubmitted = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Masquer / Afficher le mot de passe
   togglePassword(): void {
     this.showPassword = !this.showPassword;
   }
 
-  // Modifier les informations (retour au formulaire avec conservation des données)
-  editForm(): void {
-    this.isSubmitted = false;
+  editUserForm(): void {
+    this.isUserSubmitted = false;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Recommencer une nouvelle inscription
-  resetForm(form?: NgForm): void {
+  resetUserForm(form?: NgForm): void {
     if (form) {
       form.resetForm();
     }
@@ -85,8 +114,8 @@ export class App {
       prenom: '',
       email: '',
     };
-    this.isSubmitted = false;
-    this.errorMessage = '';
+    this.isUserSubmitted = false;
+    this.userErrorMessage = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
