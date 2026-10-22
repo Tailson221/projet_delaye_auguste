@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Pollution, PollutionType } from '../../models/pollution.model';
@@ -41,16 +41,31 @@ function validDateValidator(control: AbstractControl): ValidationErrors | null {
   templateUrl: './pollution-form.html',
   styleUrl: './pollution-form.css',
 })
-export class PollutionFormComponent implements OnInit {
+export class PollutionFormComponent implements OnInit, OnChanges {
   /**
    * Données initiales éventuelles (ex: modification)
    */
   @Input() initialData: Pollution | null = null;
 
   /**
+   * Afficher le bouton d'annulation
+   */
+  @Input() showCancel = false;
+
+  /**
+   * Titre personnalisé du bouton de soumission
+   */
+  @Input() submitLabel = 'Déclarer';
+
+  /**
    * Événement émis lors de la soumission réussie du formulaire
    */
   @Output() formSubmit = new EventEmitter<Pollution>();
+
+  /**
+   * Événement émis lors de l'annulation
+   */
+  @Output() cancel = new EventEmitter<void>();
 
   pollutionForm!: FormGroup;
   isSubmittedAttempt = false;
@@ -70,6 +85,30 @@ export class PollutionFormComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
   }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['initialData'] && this.pollutionForm) {
+      if (this.initialData) {
+        this.pollutionForm.patchValue({
+          titre: this.initialData.titre,
+          type: this.initialData.type,
+          description: this.initialData.description,
+          dateObservation: this.initialData.dateObservation,
+          lieu: this.initialData.lieu,
+          latitude: this.initialData.latitude,
+          longitude: this.initialData.longitude,
+          photoUrl: this.initialData.photoUrl || '',
+        });
+      } else {
+        this.reset();
+      }
+    }
+  }
+
+  onCancel(): void {
+    this.cancel.emit();
+  }
+
 
   private initForm(): void {
     const today = new Date().toISOString().split('T')[0];

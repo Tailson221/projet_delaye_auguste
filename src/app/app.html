@@ -20,15 +20,23 @@
 
     <!-- Sélecteur d'onglets TP 01 / TP 02 / TP 03 -->
     <nav class="nav-tabs" role="tablist">
-      <button type="button" class="nav-tab-btn" [class.active]="activeTab === 'tp3-api'"
-        (click)="activeTab = 'tp3-api'" role="tab" [attr.aria-selected]="activeTab === 'tp3-api'">
+      <button type="button" class="nav-tab-btn" [class.active]="activeTab === 'tp3-pollution'"
+        (click)="activeTab = 'tp3-pollution'" role="tab" [attr.aria-selected]="activeTab === 'tp3-pollution'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        <span>TP 03 : Pollutions (CRUD API REST)</span>
+        <span class="tab-badge">TP 03</span>
+      </button>
+
+      <button type="button" class="nav-tab-btn" [class.active]="activeTab === 'tp3-signup'"
+        (click)="activeTab = 'tp3-signup'" role="tab" [attr.aria-selected]="activeTab === 'tp3-signup'">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="2" y1="12" x2="22" y2="12"></line>
           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
         </svg>
-        <span>TP 03 : Services & API REST (HttpClient, Signals)</span>
-        <span class="tab-badge">Séance 3</span>
+        <span>TP 03 : Inscription (API REST)</span>
       </button>
 
       <button type="button" class="nav-tab-btn" [class.active]="activeTab === 'tp2-pollution'"
@@ -38,7 +46,7 @@
           <polyline points="2 17 12 22 22 17"></polyline>
           <polyline points="2 12 12 17 22 12"></polyline>
         </svg>
-        <span>TP 02 : Pollution (Reactive Forms)</span>
+        <span>TP 02 : Formulaire Local</span>
       </button>
 
       <button type="button" class="nav-tab-btn" [class.active]="activeTab === 'tp1-signup'"
@@ -47,7 +55,7 @@
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>
         </svg>
-        <span>TP 01 : Inscription (Template Forms)</span>
+        <span>TP 01 : Inscription Local</span>
       </button>
     </nav>
   </div>
@@ -55,9 +63,16 @@
 
 <main class="app-container">
   <!-- ================================================================= -->
-  <!-- TP 03 : SERVICES ANGULAR, HTTPCLIENT & API REST MOCKÉE            -->
+  <!-- TP 03 : GESTION DES POLLUTIONS (SERVICE CRUD & HTTPCLIENT)        -->
   <!-- ================================================================= -->
-  @if (activeTab === 'tp3-api') {
+  @if (activeTab === 'tp3-pollution') {
+    <app-pollution-crud></app-pollution-crud>
+  }
+
+  <!-- ================================================================= -->
+  <!-- TP 03 : INSCRIPTION API REST (HTTPCLIENT & MOCK)                  -->
+  <!-- ================================================================= -->
+  @if (activeTab === 'tp3-signup') {
     <app-signup-api></app-signup-api>
   }
 

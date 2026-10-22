@@ -1,0 +1,424 @@
+<div class="pollution-crud-wrapper">
+  <!-- PANNEAU D'INFORMATIONS D'ENVIRONNEMENT -->
+  <aside class="env-info-panel" aria-label="Informations techniques d'environnement et d'API">
+    <div class="env-badge-group">
+      <span class="env-pill" [class.prod]="isProduction" [class.dev]="!isProduction">
+        <span class="status-indicator"></span>
+        <span>Mode : <strong>{{ isProduction ? 'Production' : 'Développement' }}</strong></span>
+      </span>
+
+      <span class="env-pill target-url" title="URL configurée dans environment.ts">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <span>API CRUD : <code>{{ apiUrl }}</code></span>
+      </span>
+
+      <span class="env-pill di-info" title="Service fourni en singleton racine injecté via inject()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+        </svg>
+        <span>Service : <strong>PollutionService</strong> (Singleton DI)</span>
+      </span>
+
+      <span class="env-pill mock-info" title="Intercepteur HTTP simulant le backend CRUD">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="16 18 22 12 16 6"></polyline>
+          <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
+        <span>Backend : <strong>Mock Interceptor REST</strong></span>
+      </span>
+    </div>
+  </aside>
+
+  <!-- TOAST NOTIFICATION TEMPORAIRE -->
+  @if (toastMessage(); as toast) {
+    <div class="toast-banner" [class]="'toast-' + toast.type" role="status" aria-live="polite">
+      <div class="toast-content">
+        @if (toast.type === 'success') {
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        } @else {
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        }
+        <span>{{ toast.text }}</span>
+      </div>
+      <button type="button" class="toast-close" (click)="toastMessage.set(null)" aria-label="Fermer la notification">×</button>
+    </div>
+  }
+
+  <!-- ============================================================== -->
+  <!-- VUE 1 : LISTE DES POLLUTIONS AVEC FILTRES ET CRUD              -->
+  <!-- ============================================================== -->
+  @if (viewMode() === 'list') {
+    <section class="card" aria-labelledby="list-title">
+      <header class="card-header header-with-action">
+        <div>
+          <div class="header-top">
+            <span class="badge">TP 03 • API REST CRUD</span>
+            <span class="header-tag">HttpClient • Communication Backend</span>
+          </div>
+          <h1 id="list-title">Registre des Pollutions Recensées</h1>
+          <p class="subtitle">
+            Consultez, filtrez, modifiez ou supprimez les signalements synchronisés avec l'API REST distante.
+          </p>
+        </div>
+
+        <div class="header-action-group">
+          <button type="button" class="btn btn-outline" (click)="loadPollutions()" [disabled]="isLoading()" title="Rafraîchir depuis l'API (GET /pollutions)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.spin]="isLoading()">
+              <path d="M23 4v6h-6"></path>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+            </svg>
+            <span>Actualiser (GET)</span>
+          </button>
+
+          <button type="button" class="btn btn-primary" (click)="openCreateForm()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Déclarer une pollution (POST)</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- BARRE DE FILTRES ET RECHERCHE MULTI-CRITÈRES -->
+      <div class="filters-toolbar" role="search" aria-label="Filtrer les pollutions">
+        <div class="filter-row">
+          <!-- Recherche textuelle -->
+          <div class="search-input-wrapper">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="text"
+              class="search-field"
+              placeholder="Rechercher par titre, lieu ou mot-clé..."
+              [ngModel]="filterCriteria().searchTerm"
+              (ngModelChange)="onSearchChange($event)"
+              aria-label="Recherche textuelle"
+            />
+            @if (filterCriteria().searchTerm) {
+              <button type="button" class="clear-search-btn" (click)="onSearchChange('')" aria-label="Effacer la recherche">×</button>
+            }
+          </div>
+
+          <!-- Filtre par Type -->
+          <div class="select-wrapper">
+            <label for="filterType" class="visually-hidden">Type de pollution</label>
+            <select
+              id="filterType"
+              class="toolbar-select"
+              [ngModel]="filterCriteria().type"
+              (ngModelChange)="onTypeChange($event)">
+              <option value="all">Tous les types ({{ totalCount() }})</option>
+              @for (t of pollutionTypes.slice(1); track t) {
+                <option [value]="t">{{ t }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Tri -->
+          <div class="select-wrapper">
+            <label for="sortBySelect" class="visually-hidden">Trier par</label>
+            <select
+              id="sortBySelect"
+              class="toolbar-select"
+              [ngModel]="filterCriteria().sortBy"
+              (ngModelChange)="onSortChange($event)">
+              <option value="dateDesc">Date d'observation (récente)</option>
+              <option value="dateAsc">Date d'observation (ancienne)</option>
+              <option value="titreAsc">Titre alphabétique (A-Z)</option>
+              <option value="titreDesc">Titre alphabétique (Z-A)</option>
+            </select>
+          </div>
+
+          <!-- Réinitialisation des filtres -->
+          @if (filterCriteria().searchTerm || filterCriteria().type !== 'all' || filterCriteria().sortBy !== 'dateDesc') {
+            <button type="button" class="btn-chip warning" (click)="resetFilters()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              <span>Effacer filtres</span>
+            </button>
+          }
+        </div>
+
+        <!-- Compteur de résultats -->
+        <div class="filter-status-bar">
+          <span class="results-counter">
+            <strong>{{ filteredCount() }}</strong> signalement(s) affiché(s) sur <strong>{{ totalCount() }}</strong> au total
+          </span>
+          @if (filterCriteria().type !== 'all') {
+            <span class="active-filter-tag">Type : {{ filterCriteria().type }}</span>
+          }
+        </div>
+      </div>
+
+      <!-- LISTE DES CARTES DE POLLUTION -->
+      @if (filteredPollutions().length === 0) {
+        <div class="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="8" y1="15" x2="16" y2="15"></line>
+            <line x1="9" y1="9" x2="9.01" y2="9"></line>
+            <line x1="15" y1="9" x2="15.01" y2="9"></line>
+          </svg>
+          <p class="empty-title">Aucune pollution ne correspond à vos critères de recherche.</p>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="resetFilters()">
+            Réinitialiser les filtres
+          </button>
+        </div>
+      } @else {
+        <div class="pollutions-grid">
+          @for (p of filteredPollutions(); track p.id) {
+            <article class="pollution-card" (click)="viewDetail(p.id!)" tabindex="0" (keydown.enter)="viewDetail(p.id!)">
+              <!-- Image de couverture ou placeholder -->
+              <div class="card-media">
+                @if (p.photoUrl) {
+                  <img [src]="p.photoUrl" [alt]="p.titre" class="pollution-img" loading="lazy" />
+                } @else {
+                  <div class="media-placeholder">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                      <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    <span>Aucune photo</span>
+                  </div>
+                }
+                <span class="badge-type" [class]="getBadgeClass(p.type)">
+                  {{ p.type }}
+                </span>
+              </div>
+
+              <!-- Contenu de la carte -->
+              <div class="card-body">
+                <div class="card-meta">
+                  <span class="meta-date">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>{{ p.dateObservation | date:'dd/MM/yyyy' }}</span>
+                  </span>
+
+                  <span class="meta-location" [title]="p.lieu">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>{{ p.lieu }}</span>
+                  </span>
+                </div>
+
+                <h2 class="card-title">{{ p.titre }}</h2>
+                <p class="card-description">{{ p.description }}</p>
+              </div>
+
+              <!-- Pied de carte avec actions CRUD -->
+              <div class="card-footer" (click)="$event.stopPropagation()">
+                <button type="button" class="btn-action view" (click)="viewDetail(p.id!)" title="Consulter la fiche détaillée (GET)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <span>Détail</span>
+                </button>
+
+                <button type="button" class="btn-action edit" (click)="openEditForm(p)" title="Modifier cette pollution (PUT)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  <span>Modifier</span>
+                </button>
+
+                <!-- Zone de suppression avec confirmation -->
+                @if (deleteConfirmId() === p.id) {
+                  <div class="delete-confirm-box">
+                    <span class="confirm-text">Supprimer ?</span>
+                    <button type="button" class="btn-confirm-yes" (click)="confirmDelete(p.id!, $event)">Oui</button>
+                    <button type="button" class="btn-confirm-no" (click)="cancelDelete($event)">Non</button>
+                  </div>
+                } @else {
+                  <button type="button" class="btn-action delete" (click)="askDelete(p.id!, $event)" title="Supprimer de l'API (DELETE)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Supprimer</span>
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- ============================================================== -->
+  <!-- VUE 2 : DÉTAIL D'UNE POLLUTION (READ ONE)                      -->
+  <!-- ============================================================== -->
+  @if (viewMode() === 'detail' && selectedPollution(); as item) {
+    <section class="card detail-card" aria-label="Détail du signalement">
+      <header class="detail-header">
+        <button type="button" class="btn btn-outline-subtle btn-sm" (click)="backToList()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Retour au registre</span>
+        </button>
+
+        <div class="detail-id-badge">
+          <span>Identifiant API : <code>{{ item.id }}</code></span>
+        </div>
+      </header>
+
+      <div class="detail-body">
+        <!-- Photo et badge -->
+        @if (item.photoUrl) {
+          <div class="detail-media">
+            <img [src]="item.photoUrl" [alt]="item.titre" class="detail-img" />
+            <span class="badge-type detail-badge" [class]="getBadgeClass(item.type)">{{ item.type }}</span>
+          </div>
+        }
+
+        <div class="detail-main-info">
+          <div class="detail-title-group">
+            <span class="badge-type" [class]="getBadgeClass(item.type)">{{ item.type }}</span>
+            <h1 class="detail-title">{{ item.titre }}</h1>
+          </div>
+
+          <div class="detail-description-box">
+            <span class="section-label">Description constatée :</span>
+            <p class="description-text">{{ item.description }}</p>
+          </div>
+
+          <!-- Métadonnées géographiques et temporelles -->
+          <div class="detail-grid">
+            <div class="detail-cell">
+              <span class="cell-label">Lieu de l'observation</span>
+              <span class="cell-value highlight">{{ item.lieu }}</span>
+            </div>
+
+            <div class="detail-cell">
+              <span class="cell-label">Date d'observation</span>
+              <span class="cell-value">{{ item.dateObservation | date:'dd/MM/yyyy' }}</span>
+            </div>
+
+            <div class="detail-cell">
+              <span class="cell-label">Coordonnées GPS</span>
+              <span class="cell-value monospace">Lat: {{ item.latitude }} • Lon: {{ item.longitude }}</span>
+            </div>
+
+            <div class="detail-cell">
+              <span class="cell-label">Localisation satellite</span>
+              <a [href]="getGoogleMapsUrl(item.latitude, item.longitude)" target="_blank" rel="noopener noreferrer" class="maps-link">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+                <span>Ouvrir sur Google Maps</span>
+              </a>
+            </div>
+
+            @if (item.createdAt) {
+              <div class="detail-cell">
+                <span class="cell-label">Enregistré dans l'API le</span>
+                <span class="cell-value sub-text">{{ item.createdAt | date:'dd/MM/yyyy à HH:mm' }}</span>
+              </div>
+            }
+
+            @if (item.updatedAt) {
+              <div class="detail-cell">
+                <span class="cell-label">Dernière mise à jour</span>
+                <span class="cell-value sub-text">{{ item.updatedAt | date:'dd/MM/yyyy à HH:mm' }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions sur la fiche détaillée -->
+      <footer class="detail-actions">
+        <button type="button" class="btn btn-outline" (click)="backToList()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Retour à la liste</span>
+        </button>
+
+        <button type="button" class="btn btn-secondary" (click)="openEditForm(item)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          <span>Modifier cette pollution (PUT)</span>
+        </button>
+
+        @if (deleteConfirmId() === item.id) {
+          <div class="delete-confirm-box inline-confirm">
+            <span class="confirm-text">Confirmer la suppression définitive ?</span>
+            <button type="button" class="btn-confirm-yes" (click)="confirmDelete(item.id!)">Confirmer</button>
+            <button type="button" class="btn-confirm-no" (click)="cancelDelete()">Annuler</button>
+          </div>
+        } @else {
+          <button type="button" class="btn btn-danger" (click)="askDelete(item.id!)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span>Supprimer cette pollution (DELETE)</span>
+          </button>
+        }
+      </footer>
+    </section>
+  }
+
+  <!-- ============================================================== -->
+  <!-- VUE 3 : FORMULAIRE DE CRÉATION (POST) OU ÉDITION (PUT)         -->
+  <!-- ============================================================== -->
+  @if (viewMode() === 'create' || viewMode() === 'edit') {
+    <div class="form-wrapper-view">
+      <div class="form-view-header">
+        <button type="button" class="btn btn-outline-subtle btn-sm" (click)="onFormCancel()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Annuler et retourner</span>
+        </button>
+
+        <span class="http-action-badge" [class.post]="viewMode() === 'create'" [class.put]="viewMode() === 'edit'">
+          {{ viewMode() === 'create' ? 'POST /pollutions (Création)' : 'PUT /pollutions/' + editingPollution()?.id + ' (Mise à jour)' }}
+        </span>
+      </div>
+
+      <app-pollution-form
+        [initialData]="editingPollution()"
+        [showCancel]="true"
+        [submitLabel]="viewMode() === 'create' ? 'Enregistrer dans l’API (POST)' : 'Mettre à jour l’API (PUT)'"
+        (formSubmit)="onFormSubmit($event)"
+        (cancel)="onFormCancel()">
+      </app-pollution-form>
+    </div>
+  }
+</div>

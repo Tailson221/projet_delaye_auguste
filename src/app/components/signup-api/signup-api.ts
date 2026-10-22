@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DatePipe, JsonPipe } from '@angular/common';
 import {
   AbstractControl,
   FormBuilder,
@@ -27,8 +27,7 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
 
 @Component({
   selector: 'app-signup-api',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DatePipe, JsonPipe],
   templateUrl: './signup-api.html',
   styleUrl: './signup-api.css',
 })
