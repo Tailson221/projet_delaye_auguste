@@ -185,6 +185,12 @@
       </button>
 
       <div class="main-buttons">
+        @if (showCancel) {
+          <button type="button" class="btn btn-outline" (click)="onCancel()">
+            <span>Annuler</span>
+          </button>
+        }
+
         <button type="button" class="btn btn-outline" (click)="reset()">
           <span>Réinitialiser</span>
         </button>
@@ -194,7 +200,7 @@
             stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
-          <span>Déclarer</span>
+          <span>{{ submitLabel }}</span>
         </button>
       </div>
     </div>

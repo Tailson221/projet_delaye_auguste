@@ -1,0 +1,664 @@
+/* Styles pour PollutionCrudComponent (TP 03 CRUD) */
+
+.pollution-crud-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+  width: 100%;
+}
+
+/* PANNEAU D'INFORMATIONS D'ENVIRONNEMENT */
+.env-info-panel {
+  background: rgba(15, 46, 33, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 14px;
+  padding: 0.85rem 1.25rem;
+}
+
+.env-badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.env-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  background: #13392a;
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  color: #a7f3d0;
+  font-weight: 500;
+}
+
+.env-pill code {
+  color: #fbbf24;
+  font-family: monospace;
+  font-weight: 700;
+}
+
+.env-pill.dev {
+  border-color: rgba(52, 211, 153, 0.5);
+}
+
+.env-pill.prod {
+  border-color: rgba(251, 191, 36, 0.6);
+  color: #fbbf24;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.env-pill.prod .status-indicator {
+  background: #fbbf24;
+  box-shadow: 0 0 8px #fbbf24;
+}
+
+/* TOAST NOTIFICATION */
+.toast-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  animation: slideDown 0.3s ease;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.toast-success {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10b981;
+  color: #a7f3d0;
+}
+
+.toast-error {
+  background: rgba(254, 205, 211, 0.2);
+  border: 1px solid #fecdd3;
+  color: #fecdd3;
+}
+
+.toast-close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.3rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* EN-TÊTE DE LA LISTE */
+.header-with-action {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.header-action-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* BARRE DE FILTRES ET RECHERCHE */
+.filters-toolbar {
+  background: #092017;
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.search-input-wrapper {
+  position: relative;
+  flex: 1 1 280px;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.85rem;
+  color: #a7f3d0;
+  pointer-events: none;
+}
+
+.search-field {
+  width: 100% !important;
+  padding-left: 2.6rem !important;
+  padding-right: 2rem !important;
+  font-size: 0.9rem !important;
+  border-radius: 10px !important;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.clear-search-btn:hover {
+  color: #ffffff;
+}
+
+.select-wrapper {
+  flex: 0 1 200px;
+}
+
+.toolbar-select {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  background: #143a2b;
+  border: 2px solid #6ee7b7;
+  border-radius: 10px;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+}
+
+.toolbar-select:focus {
+  border-color: #a7f3d0;
+  box-shadow: 0 0 0 3px rgba(167, 243, 208, 0.25);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.filter-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: #94a3b8;
+  border-top: 1px solid rgba(52, 211, 153, 0.15);
+  padding-top: 0.65rem;
+}
+
+.results-counter strong {
+  color: #fbbf24;
+}
+
+.active-filter-tag {
+  background: rgba(52, 211, 153, 0.15);
+  color: #a7f3d0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* GRILLE DE POLLUTIONS */
+.pollutions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.pollution-card {
+  background: #143a2b;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.pollution-card:hover {
+  transform: translateY(-4px);
+  border-color: #34d399;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(52, 211, 153, 0.15);
+}
+
+.card-media {
+  position: relative;
+  height: 170px;
+  background: #092017;
+  overflow: hidden;
+}
+
+.pollution-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.pollution-card:hover .pollution-img {
+  transform: scale(1.04);
+}
+
+.media-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  color: #475569;
+  font-size: 0.8rem;
+}
+
+.badge-type {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+}
+
+.badge-plastique { background: rgba(59, 130, 246, 0.85); color: #ffffff; }
+.badge-chimique { background: rgba(239, 68, 68, 0.85); color: #ffffff; }
+.badge-depot { background: rgba(217, 119, 6, 0.85); color: #ffffff; }
+.badge-eau { background: rgba(6, 182, 212, 0.85); color: #ffffff; }
+.badge-air { background: rgba(168, 85, 247, 0.85); color: #ffffff; }
+.badge-autre { background: rgba(100, 116, 139, 0.85); color: #ffffff; }
+
+.card-body {
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.76rem;
+  color: #94a3b8;
+}
+
+.meta-date, .meta-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta-location {
+  color: #a7f3d0;
+  font-weight: 500;
+}
+
+.card-title {
+  font-size: 1.15rem !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-description {
+  font-size: 0.86rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-footer {
+  padding: 0.75rem 1.25rem;
+  background: #0d2c20;
+  border-top: 1px solid rgba(52, 211, 153, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-action.view {
+  color: #a7f3d0;
+}
+.btn-action.view:hover {
+  background: rgba(52, 211, 153, 0.15);
+  border-color: #34d399;
+}
+
+.btn-action.edit {
+  color: #fbbf24;
+}
+.btn-action.edit:hover {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: #fbbf24;
+}
+
+.btn-action.delete {
+  color: #fecdd3;
+}
+.btn-action.delete:hover {
+  background: rgba(254, 205, 211, 0.15);
+  border-color: #fecdd3;
+}
+
+/* CONFIRMATION DE SUPPRESSION */
+.delete-confirm-box {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #2a151b;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #fecdd3;
+}
+
+.confirm-text {
+  font-size: 0.75rem;
+  color: #fecdd3;
+  font-weight: 700;
+}
+
+.btn-confirm-yes, .btn-confirm-no {
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-confirm-yes {
+  background: #e11d48;
+  color: #ffffff;
+}
+
+.btn-confirm-no {
+  background: #475569;
+  color: #ffffff;
+}
+
+/* VUE DÉTAIL D'UNE POLLUTION */
+.detail-card {
+  padding: 2rem !important;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(52, 211, 153, 0.2);
+}
+
+.detail-id-badge code {
+  color: #fbbf24;
+  font-family: monospace;
+  font-weight: 700;
+  background: #092017;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.detail-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem;
+}
+
+.detail-media {
+  position: relative;
+  max-height: 420px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.detail-img {
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+}
+
+.detail-title-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.detail-title {
+  font-size: 1.8rem !important;
+  color: #ffffff;
+  margin-bottom: 0 !important;
+}
+
+.detail-description-box {
+  background: #0a2319;
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  border-radius: 10px;
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 1.5rem;
+}
+
+.section-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #34d399;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.description-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-cell {
+  background: #143a2b;
+  border: 1px solid #205840;
+  border-radius: 10px;
+  padding: 0.85rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.cell-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #34d399;
+  text-transform: uppercase;
+}
+
+.cell-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.cell-value.highlight {
+  color: #fbbf24;
+}
+
+.cell-value.monospace {
+  font-family: monospace;
+  font-size: 0.88rem;
+}
+
+.cell-value.sub-text {
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+
+.maps-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #34d399;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.maps-link:hover {
+  color: #a7f3d0;
+}
+
+.detail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(52, 211, 153, 0.2);
+  flex-wrap: wrap;
+}
+
+.btn-danger {
+  background: #e11d48 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.btn-danger:hover {
+  background: #be123c !important;
+}
+
+/* VUE FORMULAIRE D'ÉDITION / CRÉATION */
+.form-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.http-action-badge {
+  font-size: 0.8rem;
+  font-family: monospace;
+  font-weight: 800;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+}
+
+.http-action-badge.post {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid #10b981;
+}
+
+.http-action-badge.put {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid #d97706;
+}
+
+@media (max-width: 768px) {
+  .pollutions-grid {
+    grid-template-columns: 1fr;
+  }
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .select-wrapper {
+    flex: 1 1 100%;
+  }
+}

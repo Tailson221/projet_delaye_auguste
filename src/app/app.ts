@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { PollutionFormComponent } from './components/pollution-form/pollution-form';
 import { PollutionRecapComponent } from './components/pollution-recap/pollution-recap';
+import { PollutionCrudComponent } from './components/pollution-crud/pollution-crud';
+import { SignupApiComponent } from './components/signup-api/signup-api';
 import { Pollution } from './models/pollution.model';
 
 export interface UserSignup {
@@ -16,19 +18,19 @@ export interface UserSignup {
 
 @Component({
   selector: 'app-root',
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     PollutionFormComponent,
     PollutionRecapComponent,
+    PollutionCrudComponent,
+    SignupApiComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App {
-  // Onglet actif : 'tp2-pollution' (par défaut) ou 'tp1-signup'
-  activeTab: 'tp2-pollution' | 'tp1-signup' = 'tp2-pollution';
+  // Onglet actif : 'tp3-pollution' (par défaut pour le TP 03), 'tp3-signup', 'tp2-pollution' ou 'tp1-signup'
+  activeTab: 'tp3-pollution' | 'tp3-signup' | 'tp2-pollution' | 'tp1-signup' = 'tp3-pollution';
 
   // ==========================================
   // ÉTAT TP 02 : DÉCLARATION POLLUTION (REACTIVE FORMS)
