@@ -1,0 +1,54 @@
+# Blueprint Render pour le déploiement du projet pédagogique Pollution
+# Inclut la base de données PostgreSQL, l'API Node.js/TypeScript et le Frontend Angular
+
+databases:
+  - name: pollution-db
+    databaseName: pollution_db
+    user: pollution_user
+    plan: free
+    region: oregon
+
+services:
+  # -------------------------------------------------------------
+  # API Backend Node.js / Express / Sequelize / TypeScript
+  # -------------------------------------------------------------
+  - type: web
+    name: pollution-api
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: api
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pollution-db
+          property: connectionString
+
+  # -------------------------------------------------------------
+  # Application Frontend Angular (Site Statique)
+  # -------------------------------------------------------------
+  - type: web
+    name: pollution-front
+    runtime: static
+    rootDir: front
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist/projet_delaye_auguste/browser
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_HOST
+        fromService:
+          type: web
+          name: pollution-api
+          property: host
