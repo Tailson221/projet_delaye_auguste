@@ -38,15 +38,13 @@ services:
     name: pollution-front
     runtime: static
     rootDir: front
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     staticPublishPath: dist/projet_delaye_auguste/browser
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: API_HOST
         fromService:
           type: web
