@@ -1,11 +1,11 @@
 # Compiled output
-/dist
-/tmp
-/out-tsc
-/.angular
+**/dist/
+**/tmp/
+**/out-tsc/
+**/.angular/
 
 # Node dependencies
-/node_modules
+**/node_modules/
 npm-debug.log
 yarn-error.log
 
