@@ -22,11 +22,18 @@ app.use(express.urlencoded({ extended: true }));
 
 // health checks
 app.get("/", (_req: Request, res: Response) => {
-  res.json({ message: "Welcome to Pollution API." });
+  res.json({
+    message: "Welcome to Pollution & Users API (TP 04).",
+    endpoints: {
+      users: "/api/users",
+      pollutions: "/api/pollutions",
+      health: "/health"
+    }
+  });
 });
 
 app.get("/health", (_req: Request, res: Response) => {
-  res.status(200).json({ status: "OK" });
+  res.status(200).json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
 db.sequelize
@@ -34,8 +41,9 @@ db.sequelize
   .then(async () => {
     console.log("Synced db.");
     try {
-      const count = await db.pollutions.count();
-      if (count === 0) {
+      // 1. Initialisation des pollutions
+      const pollutionCount = await db.pollutions.count();
+      if (pollutionCount === 0) {
         await db.pollutions.bulkCreate([
           {
             ville: "Biarritz",
@@ -109,6 +117,41 @@ db.sequelize
           }
         ]);
         console.log("Jeu de données initial pour la table pollution inséré avec succès.");
+      }
+
+      // 2. Initialisation des utilisateurs
+      const userCount = await db.users.count();
+      if (userCount === 0) {
+        await db.users.bulkCreate([
+          {
+            login: "adelaye",
+            nom: "Delaye",
+            prenom: "Auguste",
+            email: "auguste.delaye@ecowatch.fr",
+            password: "Password123!",
+            role: "Analyste Environnemental",
+            createdAt: new Date().toISOString()
+          },
+          {
+            login: "claire_d",
+            nom: "Dupont",
+            prenom: "Claire",
+            email: "claire.dupont@ecowatch.fr",
+            password: "Password123!",
+            role: "Éco-Citoyen",
+            createdAt: new Date().toISOString()
+          },
+          {
+            login: "thomas_m",
+            nom: "Martin",
+            prenom: "Thomas",
+            email: "thomas.martin@ecowatch.fr",
+            password: "Password123!",
+            role: "Sentinelle de Terrain",
+            createdAt: new Date().toISOString()
+          }
+        ]);
+        console.log("Jeu de données initial pour la table users inséré avec succès.");
       }
     } catch (seedErr: unknown) {
       console.warn("Remarque : impossible d'insérer les données d'initialisation :", seedErr);

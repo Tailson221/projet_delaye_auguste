@@ -6,9 +6,30 @@ import { HttpTrafficLog } from '../models/pollution.model';
 })
 export class HttpTrafficService {
   /**
+   * Mode d'exécution de l'API :
+   * - true  : Simulation locale avec l'intercepteur Mock (offline / tests unitaires)
+   * - false : Communication directe en direct avec l'API REST Node.js & PostgreSQL
+   */
+  readonly isMockActive = signal<boolean>(true);
+
+  /**
    * Signal réactif contenant l'historique des requêtes et réponses HTTP
    */
   readonly logs = signal<HttpTrafficLog[]>([]);
+
+  /**
+   * Bascule entre le mode Mock local et l'API Live REST Node.js
+   */
+  toggleMockMode(): void {
+    this.isMockActive.update((val) => !val);
+  }
+
+  /**
+   * Définit explicitement le mode
+   */
+  setMockMode(active: boolean): void {
+    this.isMockActive.set(active);
+  }
 
   /**
    * Enregistre une interaction HTTP
