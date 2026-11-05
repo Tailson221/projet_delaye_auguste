@@ -1,0 +1,362 @@
+<div class="user-management-container">
+  <!-- En-tête du composant -->
+  <header class="section-header">
+    <div class="header-titles">
+      <div class="badge-tag">TP 04 • API REST Node.js & Sequelize</div>
+      <h2>Gestion des Utilisateurs & Authentification</h2>
+      <p class="subtitle">
+        Interactions avec l'API REST <code>/api/users</code> : création, consultation, suppression et authentification.
+      </p>
+    </div>
+
+    <!-- État de session de l'utilisateur -->
+    <div class="session-box">
+      @if (currentUser()) {
+        <div class="user-pill logged-in">
+          <span class="status-dot online"></span>
+          <div class="pill-info">
+            <span class="user-name">{{ currentUser()?.prenom }} {{ currentUser()?.nom }}</span>
+            <span class="user-role">{{ currentUser()?.role }}</span>
+          </div>
+          <button type="button" class="btn-logout" (click)="logout()" title="Déconnexion">
+            Déconnexion
+          </button>
+        </div>
+      } @else {
+        <div class="user-pill anonymous">
+          <span class="status-dot offline"></span>
+          <span>Non authentifié (Mode visiteur)</span>
+        </div>
+      }
+    </div>
+  </header>
+
+  <!-- Messages d'action ou d'erreur -->
+  @if (lastMessage()) {
+    <div class="alert alert-success" role="alert">
+      <span>{{ lastMessage() }}</span>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger" role="alert">
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Navigation interne par onglets -->
+  <nav class="sub-nav">
+    <button
+      type="button"
+      class="nav-tab"
+      [class.active]="activeTab() === 'list'"
+      (click)="activeTab.set('list')">
+      👥 Utilisateurs inscrits ({{ totalUsers() }})
+    </button>
+    <button
+      type="button"
+      class="nav-tab"
+      [class.active]="activeTab() === 'create'"
+      (click)="activeTab.set('create')">
+      ➕ Créer un utilisateur (POST)
+    </button>
+    <button
+      type="button"
+      class="nav-tab"
+      [class.active]="activeTab() === 'login'"
+      (click)="activeTab.set('login')">
+      🔑 Connexion (Auth fictive)
+    </button>
+  </nav>
+
+  <!-- CONTENU DE L'ONGLET 1 : LISTE DES UTILISATEURS (GET) -->
+  @if (activeTab() === 'list') {
+    <section class="tab-pane">
+      <div class="pane-toolbar">
+        <div>
+          <h3>Liste des utilisateurs enregistrés</h3>
+          <p class="text-muted">Données synchronisées avec la table PostgreSQL via <code>GET /api/users</code></p>
+        </div>
+        <button type="button" class="btn btn-secondary" (click)="loadUsers()" [disabled]="isLoading()">
+          @if (isLoading()) {
+            <span>Chargement...</span>
+          } @else {
+            <span>🔄 Actualiser (GET)</span>
+          }
+        </button>
+      </div>
+
+      @if (isLoading() && users().length === 0) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Récupération des utilisateurs depuis l'API REST...</p>
+        </div>
+      } @else if (users().length === 0) {
+        <div class="empty-state">
+          <p>Aucun utilisateur trouvé dans la base.</p>
+          <button type="button" class="btn btn-primary" (click)="activeTab.set('create')">
+            Créer le premier utilisateur
+          </button>
+        </div>
+      } @else {
+        <div class="users-grid">
+          @for (user of users(); track user.id) {
+            <article class="user-card" [class.current-card]="currentUser()?.id === user.id">
+              <div class="card-header">
+                <div class="user-avatar">
+                  {{ user.prenom.charAt(0) }}{{ user.nom.charAt(0) }}
+                </div>
+                <div class="user-meta">
+                  <h4>{{ user.prenom }} {{ user.nom }}</h4>
+                  <span class="user-login">@{{ user.login }}</span>
+                </div>
+                <span class="role-badge" [class.role-analyste]="user.role === 'Analyste Environnemental'" [class.role-sentinelle]="user.role === 'Sentinelle de Terrain'">
+                  {{ user.role }}
+                </span>
+              </div>
+
+              <div class="card-body">
+                <div class="info-row">
+                  <span class="info-label">Email :</span>
+                  <span class="info-value">{{ user.email }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Identifiant # :</span>
+                  <span class="info-value font-mono">{{ user.id }}</span>
+                </div>
+                @if (user.createdAt) {
+                  <div class="info-row">
+                    <span class="info-label">Inscrit le :</span>
+                    <span class="info-value">{{ user.createdAt | date:'short' }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="card-footer">
+                @if (currentUser()?.id !== user.id) {
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline"
+                    (click)="quickLoginAs(user.login)"
+                    title="Se connecter avec ce compte">
+                    Se connecter
+                  </button>
+                } @else {
+                  <span class="badge-active-session">✓ Session active</span>
+                }
+
+                <button
+                  type="button"
+                  class="btn btn-sm btn-danger"
+                  (click)="deleteUser(user.id)"
+                  title="Supprimer l'utilisateur via DELETE /api/users/:id">
+                  Supprimer
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- CONTENU DE L'ONGLET 2 : CRÉATION D'UTILISATEUR (POST) -->
+  @if (activeTab() === 'create') {
+    <section class="tab-pane">
+      <div class="form-card">
+        <h3>Créer un nouvel utilisateur</h3>
+        <p class="text-muted">Envoie une requête <code>POST /api/users</code> avec validation et persistance PostgreSQL.</p>
+
+        <form [formGroup]="signupForm" (ngSubmit)="submitSignup()" novalidate class="app-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="user-login">Identifiant de connexion (login) <span class="required">*</span></label>
+              <input
+                id="user-login"
+                type="text"
+                formControlName="login"
+                placeholder="ex : jdupont"
+                class="form-control"
+                [class.is-invalid]="formSubmitted() && signupForm.get('login')?.invalid" />
+              @if (formSubmitted() && signupForm.get('login')?.errors?.['required']) {
+                <span class="error-text">L'identifiant est obligatoire.</span>
+              }
+              @if (formSubmitted() && signupForm.get('login')?.errors?.['minlength']) {
+                <span class="error-text">Minimum 3 caractères.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="user-role">Rôle dans EcoWatch <span class="required">*</span></label>
+              <select id="user-role" formControlName="role" class="form-control">
+                @for (role of availableRoles; track role) {
+                  <option [value]="role">{{ role }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="user-prenom">Prénom <span class="required">*</span></label>
+              <input
+                id="user-prenom"
+                type="text"
+                formControlName="prenom"
+                placeholder="Jean"
+                class="form-control"
+                [class.is-invalid]="formSubmitted() && signupForm.get('prenom')?.invalid" />
+              @if (formSubmitted() && signupForm.get('prenom')?.errors?.['required']) {
+                <span class="error-text">Le prénom est requis.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="user-nom">Nom <span class="required">*</span></label>
+              <input
+                id="user-nom"
+                type="text"
+                formControlName="nom"
+                placeholder="Dupont"
+                class="form-control"
+                [class.is-invalid]="formSubmitted() && signupForm.get('nom')?.invalid" />
+              @if (formSubmitted() && signupForm.get('nom')?.errors?.['required']) {
+                <span class="error-text">Le nom est requis.</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="user-email">Adresse Email <span class="required">*</span></label>
+            <input
+              id="user-email"
+              type="email"
+              formControlName="email"
+              placeholder="jean.dupont@example.com"
+              class="form-control"
+              [class.is-invalid]="formSubmitted() && signupForm.get('email')?.invalid" />
+            @if (formSubmitted() && signupForm.get('email')?.errors?.['required']) {
+              <span class="error-text">L'adresse email est requise.</span>
+            }
+            @if (formSubmitted() && signupForm.get('email')?.errors?.['email']) {
+              <span class="error-text">Format d'email invalide.</span>
+            }
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="user-password">Mot de passe <span class="required">*</span></label>
+              <input
+                id="user-password"
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="6 caractères minimum"
+                class="form-control"
+                [class.is-invalid]="formSubmitted() && signupForm.get('password')?.invalid" />
+              @if (formSubmitted() && signupForm.get('password')?.errors?.['required']) {
+                <span class="error-text">Le mot de passe est obligatoire.</span>
+              }
+              @if (formSubmitted() && signupForm.get('password')?.errors?.['minlength']) {
+                <span class="error-text">Au moins 6 caractères requis.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="user-confirm-password">Confirmer le mot de passe <span class="required">*</span></label>
+              <input
+                id="user-confirm-password"
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="confirmPassword"
+                placeholder="Répétez le mot de passe"
+                class="form-control"
+                [class.is-invalid]="formSubmitted() && signupForm.errors?.['passwordMismatch']" />
+              @if (formSubmitted() && signupForm.errors?.['passwordMismatch']) {
+                <span class="error-text">Les mots de passe ne correspondent pas.</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-checkbox">
+            <label>
+              <input type="checkbox" (change)="togglePasswordVisibility()" [checked]="showPassword()" />
+              Afficher le mot de passe en clair
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="activeTab.set('list')">
+              Annuler
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading()">
+              @if (isLoading()) {
+                <span>Création en cours...</span>
+              } @else {
+                <span>Enregistrer l'utilisateur (POST /api/users)</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  }
+
+  <!-- CONTENU DE L'ONGLET 3 : CONNEXION (AUTH FICTIVE) -->
+  @if (activeTab() === 'login') {
+    <section class="tab-pane">
+      <div class="form-card narrow">
+        <h3>Authentification Fictive (Sign In)</h3>
+        <p class="text-muted">Simule une authentification via <code>POST /api/users/login</code> avec délivrance de jeton.</p>
+
+        <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate class="app-form">
+          <div class="form-group">
+            <label for="login-identifiant">Identifiant (login ou email)</label>
+            <input
+              id="login-identifiant"
+              type="text"
+              formControlName="login"
+              placeholder="ex : adelaye ou auguste.delaye@ecowatch.fr"
+              class="form-control"
+              [class.is-invalid]="loginSubmitted() && loginForm.get('login')?.invalid" />
+            @if (loginSubmitted() && loginForm.get('login')?.errors?.['required']) {
+              <span class="error-text">Ce champ est requis.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="login-password">Mot de passe</label>
+            <input
+              id="login-password"
+              type="password"
+              formControlName="password"
+              placeholder="Votre mot de passe"
+              class="form-control"
+              [class.is-invalid]="loginSubmitted() && loginForm.get('password')?.invalid" />
+            @if (loginSubmitted() && loginForm.get('password')?.errors?.['required']) {
+              <span class="error-text">Le mot de passe est requis.</span>
+            }
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-block" [disabled]="isLoading()">
+              @if (isLoading()) {
+                <span>Connexion en cours...</span>
+              } @else {
+                <span>Se connecter (POST /api/users/login)</span>
+              }
+            </button>
+          </div>
+
+          <div class="quick-credentials">
+            <p class="hint-title">Comptes de test pré-configurés :</p>
+            <ul>
+              <li><code>adelaye</code> / <code>Password123!</code> (Analyste)</li>
+              <li><code>claire_d</code> / <code>Password123!</code> (Éco-Citoyen)</li>
+              <li><code>thomas_m</code> / <code>Password123!</code> (Sentinelle)</li>
+            </ul>
+          </div>
+        </form>
+      </div>
+    </section>
+  }
+</div>
+

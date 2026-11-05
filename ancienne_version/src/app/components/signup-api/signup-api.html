@@ -1,0 +1,558 @@
+<div class="signup-api-wrapper">
+  <!-- PANNEAU D'ENVIRONNEMENT ET D'INJECTION DE DÉPENDANCE -->
+  <aside class="env-info-panel" aria-label="Informations techniques d'environnement et de service">
+    <div class="env-badge-group">
+      <span class="env-pill" [class.prod]="isProduction" [class.dev]="!isProduction">
+        <span class="status-indicator"></span>
+        <span>Mode : <strong>{{ isProduction ? 'Production' : 'Développement' }}</strong></span>
+      </span>
+
+      <span class="env-pill target-url" title="URL configurée dans environment.ts">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <span>API URL : <code>{{ apiUrl }}</code></span>
+      </span>
+
+      <span class="env-pill di-info" title="Service fourni en root singleton injecté via inject()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+        </svg>
+        <span>Service : <strong>AuthService</strong> (Root Singleton DI)</span>
+      </span>
+
+      <span class="env-pill mock-info" title="Intercepteur HTTP fonctionnel simulant le backend REST">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="16 18 22 12 16 6"></polyline>
+          <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
+        <span>Backend : <strong>Mock Interceptor Actif</strong> (~600ms)</span>
+      </span>
+    </div>
+  </aside>
+
+  <!-- ============================================================== -->
+  <!-- VUE 1 : FORMULAIRE D'INSCRIPTION INTERACTIF                   -->
+  <!-- ============================================================== -->
+  @if (viewMode() === 'form') {
+    <section class="card" aria-labelledby="form-title">
+      <header class="card-header">
+        <div class="header-top">
+          <span class="badge">Séance 03 • Services & API REST</span>
+          <span class="header-tag">HttpClient • Inscription Asynchrone</span>
+        </div>
+        <h1 id="form-title">Inscription d'un utilisateur (API REST)</h1>
+        <p class="subtitle">
+          Ce formulaire communique avec l'API REST via le service <code>AuthService</code> injecté avec <code>inject()</code>. 
+          Les requêtes sont gérées de manière asynchrone avec <code>HttpClient</code> et l'état réactif est piloté par des Signals.
+        </p>
+
+        <!-- BARRE D'OUTILS ET ACCÉLÉRATEURS DE TEST -->
+        <div class="test-controls-bar">
+          <div class="test-buttons-group">
+            <span class="control-label">Remplissage rapide :</span>
+            <button type="button" class="btn-chip" (click)="fillExample('valid')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 6L9 17l-5-5"></path>
+              </svg>
+              <span>Exemple Valide (201)</span>
+            </button>
+            <button type="button" class="btn-chip warning" (click)="fillExample('conflict')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>Email Existant (409)</span>
+            </button>
+          </div>
+
+          <div class="scenario-selector">
+            <label for="simulationSelect" class="control-label">Simulation d'erreur :</label>
+            <select
+              id="simulationSelect"
+              class="scenario-select"
+              [value]="simulationMode()"
+              (change)="simulationMode.set($any($event.target).value)">
+              <option value="none">Nominal (Succès HTTP 201)</option>
+              <option value="conflict">Forcer Conflit (HTTP 409 Conflict)</option>
+              <option value="server">Forcer Panne Serveur (HTTP 500 Error)</option>
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <!-- ALERTE D'ERREUR HTTP RETOURNÉE PAR L'API -->
+      @if (lastError(); as errorMsg) {
+        <div class="alert error-alert" role="alert">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="alert-icon">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+          <div class="alert-content">
+            <strong>Échec de la requête HTTP :</strong>
+            <span>{{ errorMsg }}</span>
+          </div>
+        </div>
+      }
+
+      <!-- FORMULAIRE RÉACTIF TYPÉ -->
+      <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="form-grid">
+          
+          <!-- SECTION 1 : IDENTIFIANTS -->
+          <div class="form-section-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span>1. Identifiants de connexion</span>
+          </div>
+
+          <!-- Champ Login -->
+          <div class="input-group">
+            <label for="login">Login <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <input
+                id="login"
+                type="text"
+                formControlName="login"
+                placeholder="ex: marie.curie"
+                autocomplete="username"
+                [class.input-error]="signupForm.get('login')?.invalid && (signupForm.get('login')?.touched || formSubmittedAttempt())"
+              />
+            </div>
+            @if (signupForm.get('login')?.invalid && (signupForm.get('login')?.touched || formSubmittedAttempt())) {
+              <span class="error-msg">
+                @if (signupForm.get('login')?.errors?.['required']) { Le login est obligatoire. }
+                @if (signupForm.get('login')?.errors?.['minlength']) { Minimum 3 caractères requis. }
+                @if (signupForm.get('login')?.errors?.['pattern']) { Caractères alphanumériques et . _ - uniquement. }
+              </span>
+            }
+          </div>
+
+          <!-- Champ Mot de passe -->
+          <div class="input-group">
+            <label for="password">Mot de passe <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <input
+                id="password"
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="6 caractères minimum"
+                autocomplete="new-password"
+                [class.input-error]="signupForm.get('password')?.invalid && (signupForm.get('password')?.touched || formSubmittedAttempt())"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                (click)="togglePassword()"
+                [attr.aria-label]="showPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+                @if (showPassword()) {
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                } @else {
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                }
+              </button>
+            </div>
+            @if (signupForm.get('password')?.invalid && (signupForm.get('password')?.touched || formSubmittedAttempt())) {
+              <span class="error-msg">
+                @if (signupForm.get('password')?.errors?.['required']) { Le mot de passe est obligatoire. }
+                @if (signupForm.get('password')?.errors?.['minlength']) { Minimum 6 caractères requis. }
+              </span>
+            }
+          </div>
+
+          <!-- Champ Confirmation Mot de passe -->
+          <div class="input-group">
+            <label for="confirmPassword">Confirmer le mot de passe <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <input
+                id="confirmPassword"
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="confirmPassword"
+                placeholder="Retapez le mot de passe"
+                autocomplete="new-password"
+                [class.input-error]="(signupForm.get('confirmPassword')?.invalid || isMismatch()) && (signupForm.get('confirmPassword')?.touched || formSubmittedAttempt())"
+              />
+            </div>
+            @if (isMismatch()) {
+              <span class="error-msg">Les deux mots de passe ne correspondent pas.</span>
+            } @else if (signupForm.get('confirmPassword')?.invalid && (signupForm.get('confirmPassword')?.touched || formSubmittedAttempt())) {
+              <span class="error-msg">La confirmation est obligatoire.</span>
+            }
+          </div>
+
+          <!-- SECTION 2 : COORDONNÉES PERSONNELLES -->
+          <div class="form-section-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>2. Coordonnées personnelles</span>
+          </div>
+
+          <!-- Champ Nom -->
+          <div class="input-group">
+            <label for="nom">Nom de famille <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <input
+                id="nom"
+                type="text"
+                formControlName="nom"
+                placeholder="ex: Dupont"
+                autocomplete="family-name"
+                [class.input-error]="signupForm.get('nom')?.invalid && (signupForm.get('nom')?.touched || formSubmittedAttempt())"
+              />
+            </div>
+            @if (signupForm.get('nom')?.invalid && (signupForm.get('nom')?.touched || formSubmittedAttempt())) {
+              <span class="error-msg">Le nom est obligatoire (min. 2 caractères).</span>
+            }
+          </div>
+
+          <!-- Champ Prénom -->
+          <div class="input-group">
+            <label for="prenom">Prénom <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <input
+                id="prenom"
+                type="text"
+                formControlName="prenom"
+                placeholder="ex: Alexandre"
+                autocomplete="given-name"
+                [class.input-error]="signupForm.get('prenom')?.invalid && (signupForm.get('prenom')?.touched || formSubmittedAttempt())"
+              />
+            </div>
+            @if (signupForm.get('prenom')?.invalid && (signupForm.get('prenom')?.touched || formSubmittedAttempt())) {
+              <span class="error-msg">Le prénom est obligatoire (min. 2 caractères).</span>
+            }
+          </div>
+
+          <!-- Champ Email -->
+          <div class="input-group">
+            <label for="email">Adresse Email <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                placeholder="ex: alexandre.dupont@email.fr"
+                autocomplete="email"
+                [class.input-error]="signupForm.get('email')?.invalid && (signupForm.get('email')?.touched || formSubmittedAttempt())"
+              />
+            </div>
+            @if (signupForm.get('email')?.invalid && (signupForm.get('email')?.touched || formSubmittedAttempt())) {
+              <span class="error-msg">
+                @if (signupForm.get('email')?.errors?.['required']) { L'adresse email est requise. }
+                @if (signupForm.get('email')?.errors?.['email']) { Format d'email invalide. }
+              </span>
+            }
+          </div>
+
+          <!-- SECTION 3 : RÔLE ET PRÉFÉRENCES -->
+          <div class="form-section-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <span>3. Rôle au sein du réseau environnemental</span>
+          </div>
+
+          <!-- Rôle -->
+          <div class="input-group col-span-2">
+            <label for="role">Rôle attribué <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <select id="role" formControlName="role" class="custom-select">
+                @for (r of availableRoles; track r) {
+                  <option [value]="r">{{ r }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Newsletter -->
+          <div class="input-group checkbox-group">
+            <label class="checkbox-label" for="newsletter">
+              <input id="newsletter" type="checkbox" formControlName="newsletter" />
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">Recevoir les alertes environnementales par email</span>
+            </label>
+          </div>
+
+        </div>
+
+        <!-- ACTIONS DU FORMULAIRE -->
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="isLoading()">
+            @if (isLoading()) {
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Envoi en cours via HttpClient...</span>
+            } @else {
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+              <span>Envoyer l'inscription (POST /auth/signup)</span>
+            }
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <!-- ============================================================== -->
+  <!-- VUE 2 : RÉCAPITULATIF SUCCÈS (RÉPONSE HTTP 201 REÇUE)          -->
+  <!-- ============================================================== -->
+  @if (viewMode() === 'success' && lastRegisteredUser(); as user) {
+    <section class="card success-card" aria-label="Confirmation d'inscription">
+      <header class="card-header text-center">
+        <div class="success-icon-wrapper">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h2>Inscription confirmée par l'API REST !</h2>
+        <p class="subtitle">
+          Code HTTP retourné : <span class="status-code-badge status-201">201 Created</span> • Réponse traitée avec succès par <code>AuthService</code>.
+        </p>
+      </header>
+
+      <div class="recap-content">
+        <!-- Bannière JWT / Token généré -->
+        <div class="token-banner">
+          <div class="token-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span>Jeton d'authentification (Bearer Token généré par l'API mockée) :</span>
+          </div>
+          <code class="token-code">{{ user.token }}</code>
+        </div>
+
+        <div class="recap-grid">
+          <div class="recap-item">
+            <span class="recap-label">Identifiant Système (ID)</span>
+            <span class="recap-value highlight"><code>{{ user.id }}</code></span>
+          </div>
+
+          <div class="recap-item">
+            <span class="recap-label">Login</span>
+            <span class="recap-value highlight">{{ user.login }}</span>
+          </div>
+
+          <div class="recap-item">
+            <span class="recap-label">Rôle Attribué</span>
+            <span class="recap-value role-badge">{{ user.role }}</span>
+          </div>
+
+          <div class="recap-item">
+            <span class="recap-label">Nom Complet</span>
+            <span class="recap-value">{{ user.prenom }} {{ user.nom }}</span>
+          </div>
+
+          <div class="recap-item">
+            <span class="recap-label">Adresse Email</span>
+            <span class="recap-value">{{ user.email }}</span>
+          </div>
+
+          <div class="recap-item">
+            <span class="recap-label">Date d'enregistrement</span>
+            <span class="recap-value">{{ user.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="recap-actions">
+        <button type="button" class="btn btn-secondary" (click)="createNewSignup()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Nouvelle inscription</span>
+        </button>
+
+        <button type="button" class="btn btn-outline" (click)="activeDetailTab.set('database')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+          </svg>
+          <span>Voir la base distante ({{ totalUsersCount() }})</span>
+        </button>
+      </div>
+    </section>
+  }
+
+  <!-- ============================================================== -->
+  <!-- SECTION INFÉRIEURE : INSPECTEUR TRAFIC & BASE MOCKÉE           -->
+  <!-- ============================================================== -->
+  <section class="card secondary-card" aria-label="Inspecteur technique HTTP et base de données">
+    <div class="tab-header-nav">
+      <div class="tabs-btn-group" role="tablist">
+        <button
+          type="button"
+          class="tab-sub-btn"
+          [class.active]="activeDetailTab() === 'traffic'"
+          (click)="activeDetailTab.set('traffic')"
+          role="tab"
+          [attr.aria-selected]="activeDetailTab() === 'traffic'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          <span>Inspecteur de Trafic HTTP Mock</span>
+          <span class="count-badge">{{ trafficService.logs().length }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="tab-sub-btn"
+          [class.active]="activeDetailTab() === 'database'"
+          (click)="activeDetailTab.set('database')"
+          role="tab"
+          [attr.aria-selected]="activeDetailTab() === 'database'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+          </svg>
+          <span>Utilisateurs Mockés (GET /users)</span>
+          <span class="count-badge">{{ totalUsersCount() }}</span>
+        </button>
+      </div>
+
+      <div class="tab-actions">
+        @if (activeDetailTab() === 'traffic') {
+          <button type="button" class="btn-chip" (click)="clearLogs()" [disabled]="trafficService.logs().length === 0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span>Effacer les logs</span>
+          </button>
+        } @else {
+          <button type="button" class="btn-chip" (click)="refreshUsers()" [disabled]="isLoading()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 4v6h-6"></path>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+            </svg>
+            <span>Actualiser (GET)</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- CONTENU ONGLET 1 : MONITEUR HTTP -->
+    @if (activeDetailTab() === 'traffic') {
+      <div class="traffic-monitor">
+        @if (trafficService.logs().length === 0) {
+          <div class="empty-state">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p>Aucune requête HTTP interceptée pour le moment.</p>
+            <span class="hint">Soumettez le formulaire ci-dessus pour observer la trame HTTP réelle générée par HttpClient.</span>
+          </div>
+        } @else {
+          <div class="traffic-logs-list">
+            @for (log of trafficService.logs(); track log.id) {
+              <article class="traffic-log-card" [class.error-log]="log.isError">
+                <header class="log-header">
+                  <div class="log-left">
+                    <span class="http-method" [class.post]="log.method === 'POST'" [class.get]="log.method === 'GET'">
+                      {{ log.method }}
+                    </span>
+                    <code class="log-url">{{ log.url }}</code>
+                  </div>
+                  <div class="log-right">
+                    <span
+                      class="status-code-badge"
+                      [class.status-201]="log.statusCode === 201"
+                      [class.status-200]="log.statusCode === 200"
+                      [class.status-409]="log.statusCode === 409"
+                      [class.status-500]="log.statusCode === 500">
+                      HTTP {{ log.statusCode }} {{ log.statusText }}
+                    </span>
+                    <span class="latency-badge">{{ log.durationMs }} ms</span>
+                    <span class="time-label">{{ log.timestamp | date:'HH:mm:ss' }}</span>
+                  </div>
+                </header>
+
+                <div class="log-body">
+                  @if (log.requestBody) {
+                    <div class="payload-box">
+                      <span class="box-title">Corps de la Requête (Payload Envoyé) :</span>
+                      <pre class="json-code"><code>{{ log.requestBody | json }}</code></pre>
+                    </div>
+                  }
+                  @if (log.responseBody) {
+                    <div class="payload-box response-box">
+                      <span class="box-title">Corps de la Réponse (Données Reçues) :</span>
+                      <pre class="json-code"><code>{{ log.responseBody | json }}</code></pre>
+                    </div>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- CONTENU ONGLET 2 : BASE DE DONNÉES REST MOCKÉE -->
+    @if (activeDetailTab() === 'database') {
+      <div class="database-viewer">
+        @if (registeredUsers().length === 0) {
+          <div class="empty-state">
+            <p>Aucun utilisateur répertorié dans la base distante.</p>
+          </div>
+        } @else {
+          <div class="users-table-container">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Identité</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Rôle</th>
+                  <th scope="col">Date d'inscription</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (u of registeredUsers(); track u.id) {
+                  <tr>
+                    <td><code>{{ u.id }}</code></td>
+                    <td>
+                      <div class="user-identity">
+                        <span class="user-fullname">{{ u.prenom }} {{ u.nom }}</span>
+                        <span class="user-login">&#64;{{ u.login }}</span>
+                      </div>
+                    </td>
+                    <td>{{ u.email }}</td>
+                    <td><span class="role-pill">{{ u.role }}</span></td>
+                    <td>{{ u.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+  </section>
+</div>

@@ -1,0 +1,334 @@
+<div class="background-decorations">
+  <div class="glow blob-1"></div>
+  <div class="glow blob-2"></div>
+</div>
+
+<!-- Barre de navigation supérieure de l'application -->
+<header class="app-nav-bar">
+  <div class="nav-container">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+      </div>
+      <div class="brand-info">
+        <span class="brand-title">EcoWatch • Gestion Pollutions</span>
+        <span class="brand-subtitle">Projet Angular - TP 01, TP 02 & TP 03 (Services & API REST)</span>
+      </div>
+    </div>
+
+    <!-- Sélecteur d'onglets TP 01 / TP 02 / TP 03 -->
+    <nav class="nav-tabs" role="tablist">
+      <button type="button" class="nav-tab-btn" [class.active]="activeTab === 'tp3-pollution'"
+        (click)="activeTab = 'tp3-pollution'" role="tab" [attr.aria-selected]="activeTab === 'tp3-pollution'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        <span>TP 03 : Pollutions (CRUD API REST)</span>
+        <span class="tab-badge">TP 03</span>
+      </button>
+
+      <button type="button" class="nav-tab-btn" [class.active]="activeTab === 'tp3-signup'"
+        (click)="activeTab = 'tp3-signup'" role="tab" [attr.aria-selected]="activeTab === 'tp3-signup'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <span>TP 03 : Inscription (API REST)</span>
+      </button>
+
+      <button type="button" class="nav-tab-btn" [class.active]="activeTab === 'tp2-pollution'"
+        (click)="activeTab = 'tp2-pollution'" role="tab" [attr.aria-selected]="activeTab === 'tp2-pollution'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        <span>TP 02 : Formulaire Local</span>
+      </button>
+
+      <button type="button" class="nav-tab-btn" [class.active]="activeTab === 'tp1-signup'"
+        (click)="activeTab = 'tp1-signup'" role="tab" [attr.aria-selected]="activeTab === 'tp1-signup'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span>TP 01 : Inscription Local</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="app-container">
+  <!-- ================================================================= -->
+  <!-- TP 03 : GESTION DES POLLUTIONS (SERVICE CRUD & HTTPCLIENT)        -->
+  <!-- ================================================================= -->
+  @if (activeTab === 'tp3-pollution') {
+    <app-pollution-crud></app-pollution-crud>
+  }
+
+  <!-- ================================================================= -->
+  <!-- TP 03 : INSCRIPTION API REST (HTTPCLIENT & MOCK)                  -->
+  <!-- ================================================================= -->
+  @if (activeTab === 'tp3-signup') {
+    <app-signup-api></app-signup-api>
+  }
+
+  <!-- ================================================================= -->
+  <!-- TP 02 : DÉCLARATION DE POLLUTION (REACTIVE FORMS & MULTI-COMPOSANTS) -->
+  <!-- ================================================================= -->
+  @if (activeTab === 'tp2-pollution') {
+    <!-- Composant 1 : Formulaire de Déclaration de Pollution (si non soumis) -->
+    @if (!isPollutionSubmitted) {
+      <app-pollution-form
+        [initialData]="currentPollution"
+        (formSubmit)="onPollutionSubmitted($event)">
+      </app-pollution-form>
+    }
+
+    <!-- Composant 2 : Récapitulatif dynamique avec @Input() (si soumis) -->
+    @if (isPollutionSubmitted && currentPollution) {
+      <app-pollution-recap
+        [pollution]="currentPollution"
+        (edit)="onEditPollution()"
+        (reset)="onResetPollution()">
+      </app-pollution-recap>
+    }
+  }
+
+  <!-- ================================================================= -->
+  <!-- TP 01 : INSCRIPTION UTILISATEUR (TEMPLATE-DRIVEN FORMS)           -->
+  <!-- ================================================================= -->
+  @if (activeTab === 'tp1-signup') {
+    @if (!isUserSubmitted) {
+      <section class="card">
+        <header class="card-header">
+          <div class="header-top">
+            <span class="badge">TP 01 • Template Forms</span>
+            <span class="header-tag">Formulaire d'inscription utilisateur</span>
+          </div>
+          <h1>Créer un compte</h1>
+          <p class="subtitle">Créez votre compte découvreur pour pouvoir recenser des pollutions.</p>
+        </header>
+
+        <form #signupForm="ngForm" (ngSubmit)="onUserSubmit(signupForm)" novalidate>
+          <!-- Alerte Erreur Globale -->
+          @if (userErrorMessage) {
+          <div class="alert error-alert" role="alert">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>{{ userErrorMessage }}</span>
+          </div>
+          }
+
+          <!-- Grille du Formulaire (3 Colonnes) -->
+          <div class="form-grid">
+            <!-- SECTION 1 : IDENTIFIANTS -->
+            <div class="form-section-header">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>Identifiants de connexion</span>
+            </div>
+
+            <!-- Champ : Login -->
+            <div class="input-group" [class.invalid]="loginCtrl.invalid && (loginCtrl.touched || signupForm.submitted)"
+              [class.valid]="loginCtrl.valid && loginCtrl.touched">
+              <label for="login">Login <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <input type="text" id="login" name="login" [(ngModel)]="user.login" #loginCtrl="ngModel"
+                  placeholder="Ex: pdupont" required minlength="3" />
+              </div>
+              @if (loginCtrl.invalid && (loginCtrl.touched || signupForm.submitted)) {
+              <span class="error-msg">
+                @if (loginCtrl.errors?.['required']) { Le login est obligatoire. }
+                @if (loginCtrl.errors?.['minlength']) { Au moins 3 caractères requis. }
+              </span>
+              }
+            </div>
+
+            <!-- Champ : Mot de passe -->
+            <div class="input-group" [class.invalid]="pwdCtrl.invalid && (pwdCtrl.touched || signupForm.submitted)"
+              [class.valid]="pwdCtrl.valid && pwdCtrl.touched">
+              <label for="password">Mot de passe <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <input [type]="showPassword ? 'text' : 'password'" id="password" name="password" [(ngModel)]="user.password"
+                  #pwdCtrl="ngModel" placeholder="••••••••" required minlength="6" />
+                <button type="button" class="toggle-password" (click)="togglePassword()"
+                  title="Afficher/Masquer le mot de passe">
+                  @if (showPassword) {
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                    </path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                  } @else {
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  }
+                </button>
+              </div>
+              @if (pwdCtrl.invalid && (pwdCtrl.touched || signupForm.submitted)) {
+              <span class="error-msg">
+                @if (pwdCtrl.errors?.['required']) { Le mot de passe est obligatoire. }
+                @if (pwdCtrl.errors?.['minlength']) { Au moins 6 caractères requis. }
+              </span>
+              }
+            </div>
+
+            <!-- Champ : Confirmation Mot de passe -->
+            <div class="input-group"
+              [class.invalid]="(confirmPwdCtrl.invalid || !passwordsMatch()) && (confirmPwdCtrl.touched || signupForm.submitted)"
+              [class.valid]="confirmPwdCtrl.valid && passwordsMatch() && confirmPwdCtrl.touched">
+              <label for="confirmPassword">Confirmation du mot de passe <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <input [type]="showPassword ? 'text' : 'password'" id="confirmPassword" name="confirmPassword"
+                  [(ngModel)]="user.confirmPassword" #confirmPwdCtrl="ngModel" placeholder="••••••••" required />
+              </div>
+              @if ((confirmPwdCtrl.invalid || !passwordsMatch()) && (confirmPwdCtrl.touched || signupForm.submitted)) {
+              <span class="error-msg">
+                @if (confirmPwdCtrl.errors?.['required']) { La confirmation est obligatoire. }
+                @else if (!passwordsMatch()) { Mots de passe non identiques. }
+              </span>
+              }
+            </div>
+
+            <!-- SECTION 2 : INFORMATIONS PERSONNELLES -->
+            <div class="form-section-header">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <line x1="20" y1="8" x2="20" y2="14"></line>
+                <line x1="23" y1="11" x2="17" y2="11"></line>
+              </svg>
+              <span>Informations personnelles</span>
+            </div>
+
+            <!-- Champ : Nom -->
+            <div class="input-group" [class.invalid]="nomCtrl.invalid && (nomCtrl.touched || signupForm.submitted)"
+              [class.valid]="nomCtrl.valid && nomCtrl.touched">
+              <label for="nom">Nom <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <input type="text" id="nom" name="nom" [(ngModel)]="user.nom" #nomCtrl="ngModel" placeholder="Dupont"
+                  required />
+              </div>
+              @if (nomCtrl.invalid && (nomCtrl.touched || signupForm.submitted)) {
+              <span class="error-msg">Le nom est obligatoire.</span>
+              }
+            </div>
+
+            <!-- Champ : Prénom -->
+            <div class="input-group" [class.invalid]="prenomCtrl.invalid && (prenomCtrl.touched || signupForm.submitted)"
+              [class.valid]="prenomCtrl.valid && prenomCtrl.touched">
+              <label for="prenom">Prénom <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <input type="text" id="prenom" name="prenom" [(ngModel)]="user.prenom" #prenomCtrl="ngModel"
+                  placeholder="Jean" required />
+              </div>
+              @if (prenomCtrl.invalid && (prenomCtrl.touched || signupForm.submitted)) {
+              <span class="error-msg">Le prénom est obligatoire.</span>
+              }
+            </div>
+
+            <!-- Champ : Email -->
+            <div class="input-group" [class.invalid]="emailCtrl.invalid && (emailCtrl.touched || signupForm.submitted)"
+              [class.valid]="emailCtrl.valid && emailCtrl.touched">
+              <label for="email">Adresse Email <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <input type="email" id="email" name="email" [(ngModel)]="user.email" #emailCtrl="ngModel"
+                  placeholder="jean.dupont@example.com" required email />
+              </div>
+              @if (emailCtrl.invalid && (emailCtrl.touched || signupForm.submitted)) {
+              <span class="error-msg">
+                @if (emailCtrl.errors?.['required']) { L'email est obligatoire. }
+                @if (emailCtrl.errors?.['email']) { Email invalide. }
+              </span>
+              }
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <span>S'inscrire</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <!-- Récapitulatif Inscription TP 01 -->
+    @if (isUserSubmitted) {
+      <section class="card">
+        <header class="card-header text-center">
+          <div class="success-icon-wrapper">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h2>Inscription réussie !</h2>
+          <p class="subtitle">Voici le récapitulatif des informations de votre compte découvreur.</p>
+        </header>
+
+        <div class="recap-content">
+          <div class="recap-grid">
+            <div class="recap-item">
+              <span class="recap-label">Login</span>
+              <span class="recap-value highlight">{{ user.login }}</span>
+            </div>
+            <div class="recap-item">
+              <span class="recap-label">Nom</span>
+              <span class="recap-value">{{ user.nom }}</span>
+            </div>
+            <div class="recap-item">
+              <span class="recap-label">Prénom</span>
+              <span class="recap-value">{{ user.prenom }}</span>
+            </div>
+            <div class="recap-item col-span-3">
+              <span class="recap-label">Adresse Email</span>
+              <span class="recap-value">{{ user.email }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="recap-actions">
+          <button type="button" class="btn btn-secondary" (click)="editUserForm()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <span>Modifier mes informations</span>
+          </button>
+          <button type="button" class="btn btn-outline" (click)="resetUserForm()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+              <path d="M3 3v5h5"></path>
+            </svg>
+            <span>Nouvelle inscription</span>
+          </button>
+        </div>
+      </section>
+    }
+  }
+</main>
+
+<footer class="app-footer">
+  <p>&copy; 2026 - Plateforme de Recensement des Pollutions • TP 01 (Template), TP 02 (Reactive) & TP 03 (Services & API REST Mockée)</p>
+</footer>

@@ -1,0 +1,81 @@
+<div class="background-decorations">
+  <div class="glow blob-1"></div>
+  <div class="glow blob-2"></div>
+</div>
+
+<!-- Barre de navigation supérieure de l'application -->
+<header class="app-nav-bar">
+  <div class="nav-container">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+      </div>
+      <div class="brand-info">
+        <span class="brand-title">EcoWatch • Plateforme Environnementale</span>
+        <span class="brand-subtitle">TP 04 — API REST Node.js & Sequelize (Pollutions & Utilisateurs)</span>
+      </div>
+    </div>
+
+    <!-- Navigation principale par onglets -->
+    <nav class="main-tabs" aria-label="Navigation principale">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="currentTab() === 'pollutions'"
+        (click)="switchTab('pollutions')">
+        🌿 Pollutions ({{ pollutionCount() }})
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="currentTab() === 'users'"
+        (click)="switchTab('users')">
+        👥 Utilisateurs ({{ userCount() }})
+      </button>
+    </nav>
+
+    <!-- Contrôles d'API & session -->
+    <div class="nav-controls">
+      <!-- Sélecteur de mode API REST Live / Mock -->
+      <button
+        type="button"
+        class="api-mode-toggle"
+        [class.mode-live]="!isMockActive()"
+        [class.mode-mock]="isMockActive()"
+        (click)="toggleApiMode()"
+        [title]="isMockActive() ? 'Cliquez pour basculer en mode API Live Node.js' : 'Cliquez pour basculer en mode Mock local'">
+        @if (isMockActive()) {
+          <span class="mode-indicator mock"></span>
+          <span>Mode : <strong>Mock Interceptor</strong></span>
+        } @else {
+          <span class="mode-indicator live"></span>
+          <span>Mode : <strong>API REST Live (Node.js)</strong></span>
+        }
+      </button>
+
+      <!-- Badge utilisateur connecté -->
+      @if (currentUser()) {
+        <div class="current-user-badge">
+          <span class="user-avatar-tiny">{{ currentUser()?.prenom?.charAt(0) }}</span>
+          <span class="user-name-tiny">{{ currentUser()?.prenom }} ({{ currentUser()?.role }})</span>
+        </div>
+      }
+    </div>
+  </div>
+</header>
+
+<main class="app-container">
+  @if (currentTab() === 'pollutions') {
+    <!-- Formulaire et Gestionnaire de Pollutions (CRUD REST) -->
+    <app-pollution-crud></app-pollution-crud>
+  } @else {
+    <!-- Gestionnaire des Utilisateurs (CRUD REST /api/users) -->
+    <app-user-management></app-user-management>
+  }
+</main>
+
+<footer class="app-footer">
+  <p>&copy; 2026 - Plateforme EcoWatch • TP 04 (API REST Node.js, Sequelize, PostgreSQL & Angular)</p>
+</footer>
