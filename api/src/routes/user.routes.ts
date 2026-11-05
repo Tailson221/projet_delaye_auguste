@@ -23,3 +23,4 @@ export default (app: Application): void => {
   app.use("/api/users", router);
   app.use("/api/user", router);
 };
+

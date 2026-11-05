@@ -184,3 +184,4 @@ export class UserService {
     return `Erreur HTTP ${err.status}: ${err.statusText || 'Erreur inattendue'}`;
   }
 }
+

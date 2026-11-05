@@ -186,3 +186,4 @@ export default {
   login,
   deleteUser
 };
+
