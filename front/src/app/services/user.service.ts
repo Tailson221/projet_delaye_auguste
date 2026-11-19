@@ -15,6 +15,36 @@ import {
   providedIn: 'root',
 })
 export class UserService {
+  private static readonly STORAGE_KEY_AUTH = 'ecowatch_auth_user';
+
+  private static loadInitialUser(): User | null {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const stored = localStorage.getItem(UserService.STORAGE_KEY_AUTH);
+        if (stored) {
+          return JSON.parse(stored);
+        }
+      }
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  private persistUser(user: User | null): void {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        if (user) {
+          localStorage.setItem(UserService.STORAGE_KEY_AUTH, JSON.stringify(user));
+        } else {
+          localStorage.removeItem(UserService.STORAGE_KEY_AUTH);
+        }
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
   /**
    * Injection moderne de HttpClient via inject()
    */
@@ -29,7 +59,7 @@ export class UserService {
   // ÉTATS RÉACTIFS (ANGULAR SIGNALS)
   // ==========================================
   readonly users = signal<User[]>([]);
-  readonly currentUser = signal<User | null>(null);
+  readonly currentUser = signal<User | null>(UserService.loadInitialUser());
   readonly isLoading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
   readonly lastActionMessage = signal<string | null>(null);
@@ -98,6 +128,7 @@ export class UserService {
         this.users.update((current) => [...current, newUser]);
         // Définir comme utilisateur actif
         this.currentUser.set(newUser);
+        this.persistUser(newUser);
       }),
       catchError((err: HttpErrorResponse) => {
         this.isLoading.set(false);
@@ -119,6 +150,7 @@ export class UserService {
       tap((res) => {
         this.isLoading.set(false);
         this.currentUser.set(res);
+        this.persistUser(res);
         this.lastActionMessage.set(`Connexion réussie en tant que ${res.prenom} ${res.nom}.`);
       }),
       catchError((err: HttpErrorResponse) => {
@@ -135,6 +167,7 @@ export class UserService {
    */
   logout(): void {
     this.currentUser.set(null);
+    this.persistUser(null);
     this.lastActionMessage.set('Session fermée.');
   }
 
@@ -154,6 +187,7 @@ export class UserService {
         // Si l'utilisateur connecté est celui supprimé, déconnexion
         if (this.currentUser()?.id === id) {
           this.currentUser.set(null);
+          this.persistUser(null);
         }
       }),
       catchError((err: HttpErrorResponse) => {

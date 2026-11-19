@@ -4,9 +4,8 @@ Sujet de Projet — Application de recensement et gestion des pollutions
 # Projet Web — Recensement et Gestion des Pollutions
 
 ## Structure du Répertoire
-- **`front/`** : Application Frontend Angular (active, contenant le formulaire & gestionnaire CRUD du TP 03).
-- **`API/`** : Dossier réservé pour le backend Node.js / Express / Sequelize.
-- **`ancienne_version/`** : Archive complète du projet avant refactorisation (contenant les 3 formulaires historiques TP 01, TP 02 et TP 03).
+- **`front/`** : Application Frontend Angular (gestion des pollutions, utilisateurs, et mode Mock/Live).
+- **`api/`** : Backend Node.js / Express / Sequelize / PostgreSQL.
 
 ---
 

@@ -73,6 +73,10 @@
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   transition: all 0.2s;
 }
 

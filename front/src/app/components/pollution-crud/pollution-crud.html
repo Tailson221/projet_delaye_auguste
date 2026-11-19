@@ -13,7 +13,7 @@
           <line x1="2" y1="12" x2="22" y2="12"></line>
           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
         </svg>
-        <span>API CRUD : <code>{{ apiUrl }}</code></span>
+        <span>API CRUD : <a [href]="apiUrl" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;" title="Cliquer pour tester la route API dans un nouvel onglet"><code>{{ apiUrl }}</code></a></span>
       </span>
 
       <span class="env-pill di-info" title="Service fourni en singleton racine injecté via inject()">
@@ -198,6 +198,9 @@
                     <span>Aucune photo</span>
                   </div>
                 }
+                <span class="badge-dangerosity" [appHighlightPollution]="p.valeur ?? 15" title="Indice de dangerosité : {{ p.valeur ?? 15 }} • Statut : {{ (p.valeur ?? 15) | pollutionLevel }}">
+                  {{ (p.valeur ?? 15) | pollutionLevel }}
+                </span>
                 <span class="badge-type" [class]="getBadgeClass(p.type)">
                   {{ p.type }}
                 </span>
@@ -312,6 +315,13 @@
 
           <!-- Métadonnées géographiques et temporelles -->
           <div class="detail-grid">
+            <div class="detail-cell">
+              <span class="cell-label">Dangerosité (Exercice 04)</span>
+              <span class="dangerosity-pill" [appHighlightPollution]="item.valeur ?? 15">
+                Indice {{ item.valeur ?? 15 }} • Statut {{ (item.valeur ?? 15) | pollutionLevel }}
+              </span>
+            </div>
+
             <div class="detail-cell">
               <span class="cell-label">Lieu de l'observation</span>
               <span class="cell-value highlight">{{ item.lieu }}</span>

@@ -10,6 +10,7 @@ export interface Pollution {
   latitude: number;
   longitude: number;
   photoUrl?: string;
+  valeur?: number; // Indice de dangerosité numérique (Exercice 04)
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }

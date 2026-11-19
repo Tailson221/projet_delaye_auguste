@@ -8,9 +8,9 @@ import { User, UserSignupRequest, UserSignupResponse, UserLoginRequest, UserLogi
 import { HttpTrafficService } from '../services/http-traffic.service';
 
 /**
- * Base de données en mémoire pour le Mock API - Pollutions (CRUD)
+ * Données initiales pour le Mock API - Pollutions
  */
-const mockPollutionsDatabase: Pollution[] = [
+const initialPollutions: Pollution[] = [
   {
     id: 'pol_1',
     titre: 'Déchets plastiques abondants sur le rivage',
@@ -20,6 +20,7 @@ const mockPollutionsDatabase: Pollution[] = [
     lieu: 'Plage des Dunes, Biarritz',
     latitude: 43.4832,
     longitude: -1.5586,
+    valeur: 85, // Élevée
     photoUrl: 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=800&q=80',
     createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
@@ -33,6 +34,7 @@ const mockPollutionsDatabase: Pollution[] = [
     lieu: 'Berges de la Meurthe, Nancy',
     latitude: 48.6921,
     longitude: 6.1844,
+    valeur: 35, // Modérée
     photoUrl: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80',
     createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
@@ -46,6 +48,7 @@ const mockPollutionsDatabase: Pollution[] = [
     lieu: 'Forêt de Fontainebleau, Parcelle 42',
     latitude: 48.4047,
     longitude: 2.7016,
+    valeur: 110, // Dangereuse
     photoUrl: 'https://images.unsplash.com/photo-1605600659873-d808a13e4d2a?auto=format&fit=crop&w=800&q=80',
     createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
@@ -59,6 +62,7 @@ const mockPollutionsDatabase: Pollution[] = [
     lieu: 'Zone Industrielle Nord, Le Havre',
     latitude: 49.4944,
     longitude: 0.1079,
+    valeur: 18, // Faible
     photoUrl: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80',
     createdAt: new Date(Date.now() - 86400000 * 1).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
@@ -66,9 +70,9 @@ const mockPollutionsDatabase: Pollution[] = [
 ];
 
 /**
- * Base de données en mémoire pour le Mock API - Utilisateurs
+ * Données initiales pour le Mock API - Utilisateurs
  */
-const mockUsersDatabase: (User & { password?: string })[] = [
+const initialUsers: (User & { password?: string })[] = [
   {
     id: 1,
     login: 'adelaye',
@@ -100,6 +104,60 @@ const mockUsersDatabase: (User & { password?: string })[] = [
     createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
   },
 ];
+
+const STORAGE_KEY_POLLUTIONS = 'ecowatch_pollutions_cache';
+const STORAGE_KEY_USERS = 'ecowatch_users_cache';
+
+function loadPollutions(): Pollution[] {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = localStorage.getItem(STORAGE_KEY_POLLUTIONS);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    }
+  } catch (err) {
+    console.warn('Erreur lecture localStorage pollutions:', err);
+  }
+  return [...initialPollutions];
+}
+
+function savePollutions(items: Pollution[]): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(STORAGE_KEY_POLLUTIONS, JSON.stringify(items));
+    }
+  } catch (err) {
+    console.warn('Erreur écriture localStorage pollutions:', err);
+  }
+}
+
+function loadUsers(): (User & { password?: string })[] {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = localStorage.getItem(STORAGE_KEY_USERS);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    }
+  } catch (err) {
+    console.warn('Erreur lecture localStorage users:', err);
+  }
+  return [...initialUsers];
+}
+
+function saveUsers(items: (User & { password?: string })[]): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(items));
+    }
+  } catch (err) {
+    console.warn('Erreur écriture localStorage users:', err);
+  }
+}
+
+const mockPollutionsDatabase: Pollution[] = loadPollutions();
+const mockUsersDatabase: (User & { password?: string })[] = loadUsers();
 
 /**
  * Intercepteur HTTP fonctionnel Angular simulant l'API REST distante pour les Pollutions et Utilisateurs.
@@ -206,6 +264,7 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
       updatedAt: new Date().toISOString(),
     };
     mockPollutionsDatabase.unshift(createdItem);
+    savePollutions(mockPollutionsDatabase);
 
     return of(
       new HttpResponse({
@@ -263,6 +322,7 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
       updatedAt: new Date().toISOString(),
     };
     mockPollutionsDatabase[idx] = updatedItem;
+    savePollutions(mockPollutionsDatabase);
 
     return of(
       new HttpResponse({
@@ -312,6 +372,7 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
     }
 
     mockPollutionsDatabase.splice(idx, 1);
+    savePollutions(mockPollutionsDatabase);
 
     return of(
       new HttpResponse({
@@ -452,6 +513,7 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
       ...createdUser,
       password: payload.password,
     });
+    saveUsers(mockUsersDatabase);
 
     return of(
       new HttpResponse({
@@ -561,6 +623,7 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
     }
 
     mockUsersDatabase.splice(idx, 1);
+    saveUsers(mockUsersDatabase);
 
     return of(
       new HttpResponse({

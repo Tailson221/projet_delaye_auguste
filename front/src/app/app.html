@@ -14,26 +14,31 @@
       </div>
       <div class="brand-info">
         <span class="brand-title">EcoWatch • Plateforme Environnementale</span>
-        <span class="brand-subtitle">TP 04 — API REST Node.js & Sequelize (Pollutions & Utilisateurs)</span>
+        <span class="brand-subtitle">TP 05 — Routes, Guards, Lazy Loading & Stratégie OnPush</span>
       </div>
     </div>
 
-    <!-- Navigation principale par onglets -->
+    <!-- Navigation principale par routes (RouterLink & Lazy Loading) -->
     <nav class="main-tabs" aria-label="Navigation principale">
-      <button
-        type="button"
-        class="tab-btn"
-        [class.active]="currentTab() === 'pollutions'"
-        (click)="switchTab('pollutions')">
+      <a
+        routerLink="/pollutions"
+        routerLinkActive="active"
+        class="tab-btn">
         🌿 Pollutions ({{ pollutionCount() }})
-      </button>
-      <button
-        type="button"
-        class="tab-btn"
-        [class.active]="currentTab() === 'users'"
-        (click)="switchTab('users')">
+      </a>
+      <a
+        routerLink="/users"
+        routerLinkActive="active"
+        class="tab-btn">
         👥 Utilisateurs ({{ userCount() }})
-      </button>
+      </a>
+      <a
+        routerLink="/admin"
+        routerLinkActive="active"
+        class="tab-btn admin-tab"
+        title="Accès sécurisé par CanActivate Guard (authGuard & roleGuard)">
+        🛡️ Espace Analyste (Guard)
+      </a>
     </nav>
 
     <!-- Contrôles d'API & session -->
@@ -56,10 +61,10 @@
       </button>
 
       <!-- Badge utilisateur connecté -->
-      @if (currentUser()) {
+      @if (currentUser(); as user) {
         <div class="current-user-badge">
-          <span class="user-avatar-tiny">{{ currentUser()?.prenom?.charAt(0) }}</span>
-          <span class="user-name-tiny">{{ currentUser()?.prenom }} ({{ currentUser()?.role }})</span>
+          <span class="user-avatar-tiny">{{ user.prenom?.charAt(0) }}</span>
+          <span class="user-name-tiny">{{ user.prenom }} ({{ user.role }})</span>
         </div>
       }
     </div>
@@ -67,15 +72,10 @@
 </header>
 
 <main class="app-container">
-  @if (currentTab() === 'pollutions') {
-    <!-- Formulaire et Gestionnaire de Pollutions (CRUD REST) -->
-    <app-pollution-crud></app-pollution-crud>
-  } @else {
-    <!-- Gestionnaire des Utilisateurs (CRUD REST /api/users) -->
-    <app-user-management></app-user-management>
-  }
+  <!-- Sortie de route avec composants chargés en Lazy Loading (loadComponent) -->
+  <router-outlet></router-outlet>
 </main>
 
 <footer class="app-footer">
-  <p>&copy; 2026 - Plateforme EcoWatch • TP 04 (API REST Node.js, Sequelize, PostgreSQL & Angular)</p>
+  <p>&copy; 2026 - Plateforme EcoWatch • TP 05 (Angular Router, Lazy Loading, Guards & OnPush)</p>
 </footer>

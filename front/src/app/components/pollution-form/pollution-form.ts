@@ -1,7 +1,9 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Pollution, PollutionType } from '../../models/pollution.model';
+import { PollutionLevelPipe } from '../../pipes/pollution-level.pipe';
+import { HighlightPollutionDirective } from '../../directives/highlight-pollution.directive';
 
 /**
  * Validateur d'URL optionnelle (valide si vide ou si URL correcte)
@@ -37,9 +39,10 @@ function validDateValidator(control: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'app-pollution-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, PollutionLevelPipe, HighlightPollutionDirective],
   templateUrl: './pollution-form.html',
   styleUrl: './pollution-form.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PollutionFormComponent implements OnInit, OnChanges {
   /**
@@ -98,6 +101,7 @@ export class PollutionFormComponent implements OnInit, OnChanges {
           latitude: this.initialData.latitude,
           longitude: this.initialData.longitude,
           photoUrl: this.initialData.photoUrl || '',
+          valeur: this.initialData.valeur ?? 25,
         });
       } else {
         this.reset();
@@ -156,6 +160,10 @@ export class PollutionFormComponent implements OnInit, OnChanges {
         this.initialData?.photoUrl || '',
         [optionalUrlValidator],
       ],
+      valeur: [
+        this.initialData?.valeur ?? 25,
+        [Validators.min(0), Validators.max(500)],
+      ],
     });
   }
 
@@ -187,6 +195,7 @@ export class PollutionFormComponent implements OnInit, OnChanges {
       latitude: 48.4047,
       longitude: 2.7016,
       photoUrl: 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=1000&q=80',
+      valeur: 85,
     });
   }
 
@@ -212,6 +221,7 @@ export class PollutionFormComponent implements OnInit, OnChanges {
       latitude: parseFloat(formValue.latitude),
       longitude: parseFloat(formValue.longitude),
       photoUrl: formValue.photoUrl ? formValue.photoUrl.trim() : undefined,
+      valeur: formValue.valeur !== null && formValue.valeur !== '' ? Number(formValue.valeur) : 25,
       createdAt: new Date(),
     };
 
@@ -229,6 +239,7 @@ export class PollutionFormComponent implements OnInit, OnChanges {
       latitude: '',
       longitude: '',
       photoUrl: '',
+      valeur: 25,
     });
     this.isSubmittedAttempt = false;
     this.errorMessage = '';

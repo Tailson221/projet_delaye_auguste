@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import {
   AbstractControl,
@@ -26,6 +26,7 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
   imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './user-management.html',
   styleUrl: './user-management.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserManagementComponent implements OnInit {
   readonly userService = inject(UserService);

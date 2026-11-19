@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.ecowatch-environnement.fr/api',
+  apiUrl: 'http://localhost:3000/api',
   mockDelayMs: 600,
 };
