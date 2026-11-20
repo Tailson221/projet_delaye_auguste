@@ -167,6 +167,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   min-width: 170px;
 }
 
+.dangerosity-live-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
 @media (max-width: 900px) {
   .col-span-2, .col-span-3 {
     grid-column: span 2;

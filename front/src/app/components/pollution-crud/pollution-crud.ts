@@ -1,18 +1,27 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 import { Pollution, PollutionFilterCriteria, PollutionType } from '../../models/pollution.model';
 import { PollutionService } from '../../services/pollution.service';
 import { PollutionFormComponent } from '../pollution-form/pollution-form';
+import { PollutionLevelPipe } from '../../pipes/pollution-level.pipe';
+import { HighlightPollutionDirective } from '../../directives/highlight-pollution.directive';
 
 export type CrudViewMode = 'list' | 'detail' | 'create' | 'edit';
 
 @Component({
   selector: 'app-pollution-crud',
-  imports: [FormsModule, DatePipe, PollutionFormComponent],
+  imports: [
+    FormsModule,
+    DatePipe,
+    PollutionFormComponent,
+    PollutionLevelPipe,
+    HighlightPollutionDirective,
+  ],
   templateUrl: './pollution-crud.html',
   styleUrl: './pollution-crud.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PollutionCrudComponent implements OnInit {
   // ==========================================

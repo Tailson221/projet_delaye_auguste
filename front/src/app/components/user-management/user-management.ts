@@ -1,5 +1,6 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   AbstractControl,
   FormBuilder,
@@ -26,11 +27,14 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
   imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './user-management.html',
   styleUrl: './user-management.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserManagementComponent implements OnInit {
   readonly userService = inject(UserService);
   readonly trafficService = inject(HttpTrafficService);
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   readonly availableRoles: UserRole[] = [
     'Éco-Citoyen',
@@ -38,10 +42,12 @@ export class UserManagementComponent implements OnInit {
     'Analyste Environnemental',
   ];
 
-  readonly activeTab = signal<'list' | 'create' | 'login'>('list');
+  // L'onglet actif par défaut est 'login' pour les visiteurs non connectés
+  readonly activeTab = signal<'list' | 'create' | 'login'>('login');
   readonly showPassword = signal<boolean>(false);
   readonly formSubmitted = signal<boolean>(false);
   readonly loginSubmitted = signal<boolean>(false);
+  readonly authNotice = signal<string | null>(null);
 
   readonly users = this.userService.users;
   readonly currentUser = this.userService.currentUser;
@@ -55,7 +61,18 @@ export class UserManagementComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForms();
-    this.loadUsers();
+
+    // Analyse des paramètres de requête (redirection par le Guard)
+    const params = this.route.snapshot.queryParams;
+    if (params['needAuth'] === 'true') {
+      this.authNotice.set('🔒 Accès restreint : vous devez être connecté pour accéder au registre des pollutions.');
+      this.activeTab.set('login');
+    } else if (params['tab'] === 'login' || !this.userService.isAuthenticated()) {
+      this.activeTab.set('login');
+    } else {
+      this.activeTab.set('list');
+      this.loadUsers();
+    }
   }
 
   private initForms(): void {
@@ -78,7 +95,23 @@ export class UserManagementComponent implements OnInit {
     });
   }
 
+  selectTab(tab: 'list' | 'create' | 'login'): void {
+    if (tab === 'list' && !this.userService.isAuthenticated()) {
+      this.authNotice.set('🔒 Accès protégé : vous devez vous connecter pour consulter l\'annuaire des utilisateurs.');
+      this.activeTab.set('login');
+      return;
+    }
+    this.authNotice.set(null);
+    this.activeTab.set(tab);
+    if (tab === 'list') {
+      this.loadUsers();
+    }
+  }
+
   loadUsers(): void {
+    if (!this.userService.isAuthenticated()) {
+      return;
+    }
     this.userService.getUsers().subscribe({
       error: () => {
         // L'erreur est gérée dans le signal error du service
@@ -108,7 +141,15 @@ export class UserManagementComponent implements OnInit {
         next: () => {
           this.signupForm.reset({ role: 'Éco-Citoyen' });
           this.formSubmitted.set(false);
-          this.activeTab.set('list');
+          this.authNotice.set(null);
+
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+          if (returnUrl) {
+            this.router.navigateByUrl(returnUrl);
+          } else {
+            this.activeTab.set('list');
+            this.loadUsers();
+          }
         },
       });
   }
@@ -130,7 +171,15 @@ export class UserManagementComponent implements OnInit {
         next: () => {
           this.loginForm.reset();
           this.loginSubmitted.set(false);
-          this.activeTab.set('list');
+          this.authNotice.set(null);
+
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+          if (returnUrl) {
+            this.router.navigateByUrl(returnUrl);
+          } else {
+            this.activeTab.set('list');
+            this.loadUsers();
+          }
         },
       });
   }
@@ -143,7 +192,14 @@ export class UserManagementComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.activeTab.set('list');
+          this.authNotice.set(null);
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+          if (returnUrl) {
+            this.router.navigateByUrl(returnUrl);
+          } else {
+            this.activeTab.set('list');
+            this.loadUsers();
+          }
         },
       });
   }
@@ -156,10 +212,10 @@ export class UserManagementComponent implements OnInit {
 
   logout(): void {
     this.userService.logout();
+    this.activeTab.set('login');
   }
 
   togglePasswordVisibility(): void {
     this.showPassword.update((val) => !val);
   }
 }
-

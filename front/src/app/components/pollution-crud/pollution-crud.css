@@ -647,6 +647,42 @@
   border: 1px solid #d97706;
 }
 
+/* ==========================================
+   EXERCICE 04 : BADGES DANGEROSITÉ & DIRECTIVE
+   ========================================== */
+.badge-dangerosity {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  border: 1px solid transparent;
+  backdrop-filter: blur(8px);
+  z-index: 2;
+  transition: transform 0.2s ease;
+}
+
+.pollution-card:hover .badge-dangerosity {
+  transform: scale(1.05);
+}
+
+.dangerosity-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  width: fit-content;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+
 @media (max-width: 768px) {
   .pollutions-grid {
     grid-template-columns: 1fr;

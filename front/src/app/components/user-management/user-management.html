@@ -31,6 +31,13 @@
     </div>
   </header>
 
+  <!-- Bannière d'alerte Guard si redirection -->
+  @if (authNotice()) {
+    <div class="alert alert-warning" role="alert">
+      <span>{{ authNotice() }}</span>
+    </div>
+  }
+
   <!-- Messages d'action ou d'erreur -->
   @if (lastMessage()) {
     <div class="alert alert-success" role="alert">
@@ -44,33 +51,50 @@
     </div>
   }
 
-  <!-- Navigation interne par onglets -->
+  <!-- Navigation interne par onglets (Connexion par défaut pour les non-connectés) -->
   <nav class="sub-nav">
     <button
       type="button"
       class="nav-tab"
-      [class.active]="activeTab() === 'list'"
-      (click)="activeTab.set('list')">
-      👥 Utilisateurs inscrits ({{ totalUsers() }})
+      [class.active]="activeTab() === 'login'"
+      (click)="selectTab('login')">
+      🔑 Connexion
     </button>
     <button
       type="button"
       class="nav-tab"
       [class.active]="activeTab() === 'create'"
-      (click)="activeTab.set('create')">
+      (click)="selectTab('create')">
       ➕ Créer un utilisateur (POST)
     </button>
     <button
       type="button"
       class="nav-tab"
-      [class.active]="activeTab() === 'login'"
-      (click)="activeTab.set('login')">
-      🔑 Connexion (Auth fictive)
+      [class.active]="activeTab() === 'list'"
+      (click)="selectTab('list')">
+      @if (userService.isAuthenticated()) {
+        👥 Utilisateurs inscrits ({{ totalUsers() }})
+      } @else {
+        🔒 Utilisateurs inscrits (Protégé)
+      }
     </button>
   </nav>
 
   <!-- CONTENU DE L'ONGLET 1 : LISTE DES UTILISATEURS (GET) -->
   @if (activeTab() === 'list') {
+    @if (!userService.isAuthenticated()) {
+      <div class="auth-lock-card">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="lock-icon">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <h3>Accès restreint par Guard</h3>
+        <p>L'annuaire des utilisateurs est protégé. Veuillez vous connecter pour consulter ces données.</p>
+        <button type="button" class="btn btn-primary" (click)="selectTab('login')">
+          🔑 Se connecter
+        </button>
+      </div>
+    } @else {
     <section class="tab-pane">
       <div class="pane-toolbar">
         <div>
@@ -158,6 +182,7 @@
         </div>
       }
     </section>
+    }
   }
 
   <!-- CONTENU DE L'ONGLET 2 : CRÉATION D'UTILISATEUR (POST) -->

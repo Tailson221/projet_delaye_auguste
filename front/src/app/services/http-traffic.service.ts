@@ -5,12 +5,28 @@ import { HttpTrafficLog } from '../models/pollution.model';
   providedIn: 'root',
 })
 export class HttpTrafficService {
+  private static readonly STORAGE_KEY_MODE = 'ecowatch_mock_mode';
+
+  private static getInitialMockMode(): boolean {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const stored = localStorage.getItem(HttpTrafficService.STORAGE_KEY_MODE);
+        if (stored !== null) {
+          return stored === 'true';
+        }
+      }
+    } catch {
+      // Fallback si localStorage indisponible
+    }
+    return true;
+  }
+
   /**
    * Mode d'exécution de l'API :
-   * - true  : Simulation locale avec l'intercepteur Mock (offline / tests unitaires)
+   * - true  : Simulation locale avec l'intercepteur Mock (offline / persistance localStorage)
    * - false : Communication directe en direct avec l'API REST Node.js & PostgreSQL
    */
-  readonly isMockActive = signal<boolean>(true);
+  readonly isMockActive = signal<boolean>(HttpTrafficService.getInitialMockMode());
 
   /**
    * Signal réactif contenant l'historique des requêtes et réponses HTTP
@@ -21,7 +37,11 @@ export class HttpTrafficService {
    * Bascule entre le mode Mock local et l'API Live REST Node.js
    */
   toggleMockMode(): void {
-    this.isMockActive.update((val) => !val);
+    this.isMockActive.update((val) => {
+      const next = !val;
+      this.persistMode(next);
+      return next;
+    });
   }
 
   /**
@@ -29,6 +49,17 @@ export class HttpTrafficService {
    */
   setMockMode(active: boolean): void {
     this.isMockActive.set(active);
+    this.persistMode(active);
+  }
+
+  private persistMode(active: boolean): void {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem(HttpTrafficService.STORAGE_KEY_MODE, String(active));
+      }
+    } catch {
+      // Fallback
+    }
   }
 
   /**

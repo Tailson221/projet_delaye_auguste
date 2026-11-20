@@ -68,6 +68,21 @@
         }
       </div>
 
+      <!-- Champ : Indice de dangerosité (Exercice 04 - Pipe & Directive) -->
+      <div class="input-group" [class.invalid]="isInvalid('valeur')">
+        <div class="label-row">
+          <label for="valeur">Indice de dangerosité</label>
+          @if (f['valeur'].value !== null && f['valeur'].value !== '') {
+            <span class="dangerosity-live-tag" [appHighlightPollution]="f['valeur'].value">
+              {{ f['valeur'].value | pollutionLevel }}
+            </span>
+          }
+        </div>
+        <div class="input-wrapper">
+          <input type="number" id="valeur" formControlName="valeur" placeholder="Ex: 15 (Faible), 35 (Modérée), 85 (Élevée), 120 (Dangereuse)" min="0" max="500" />
+        </div>
+      </div>
+
       <!-- Champ 3 : Description (textarea, requis) -->
       <div class="input-group col-span-3" [class.invalid]="isInvalid('description')" [class.valid]="isValid('description')">
         <div class="label-row">
