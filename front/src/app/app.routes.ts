@@ -1,12 +1,11 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
-import { roleGuard } from './guards/role.guard';
 
 /**
- * Configuration des routes de l'application avec :
+ * Configuration des routes de l'application :
  * - Chargement différé (Lazy loading via loadComponent)
- * - Protection par Guards (authGuard, roleGuard)
- * - Redirections propres
+ * - Route /pollutions protégée par authGuard (connexion requise pour tous les rôles)
+ * - Redirection propre vers /users (onglet connexion) si non connecté
  */
 export const routes: Routes = [
   {
@@ -18,21 +17,18 @@ export const routes: Routes = [
     path: 'pollutions',
     loadComponent: () =>
       import('./components/pollution-crud/pollution-crud').then((m) => m.PollutionCrudComponent),
+    canActivate: [authGuard],
     title: 'EcoWatch • Registre des Pollutions',
   },
   {
     path: 'users',
     loadComponent: () =>
       import('./components/user-management/user-management').then((m) => m.UserManagementComponent),
-    title: 'EcoWatch • Gestion des Utilisateurs',
+    title: 'EcoWatch • Authentification & Utilisateurs',
   },
   {
-    path: 'admin',
-    loadComponent: () =>
-      import('./components/user-management/user-management').then((m) => m.UserManagementComponent),
-    canActivate: [authGuard, roleGuard],
-    data: { role: 'Analyste Environnemental' },
-    title: 'EcoWatch • Administration (Protégée par Guards)',
+    path: 'login',
+    redirectTo: 'users',
   },
   {
     path: '**',

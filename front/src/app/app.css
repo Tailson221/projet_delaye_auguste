@@ -161,6 +161,22 @@
   font-weight: 500;
 }
 
+.btn-logout-tiny {
+  background: transparent;
+  border: none;
+  color: #a7f3d0;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0 0.2rem;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.btn-logout-tiny:hover {
+  color: #f87171;
+}
+
 .app-container {
   max-width: 1200px;
   margin: 2rem auto;

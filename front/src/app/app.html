@@ -23,21 +23,15 @@
       <a
         routerLink="/pollutions"
         routerLinkActive="active"
-        class="tab-btn">
+        class="tab-btn"
+        title="Accès protégé par Guard (connexion requise)">
         🌿 Pollutions ({{ pollutionCount() }})
       </a>
       <a
         routerLink="/users"
         routerLinkActive="active"
         class="tab-btn">
-        👥 Utilisateurs ({{ userCount() }})
-      </a>
-      <a
-        routerLink="/admin"
-        routerLinkActive="active"
-        class="tab-btn admin-tab"
-        title="Accès sécurisé par CanActivate Guard (authGuard & roleGuard)">
-        🛡️ Espace Analyste (Guard)
+        👥 Utilisateurs & Auth ({{ userCount() }})
       </a>
     </nav>
 
@@ -60,11 +54,12 @@
         }
       </button>
 
-      <!-- Badge utilisateur connecté -->
+      <!-- Badge utilisateur connecté avec déconnexion rapide -->
       @if (currentUser(); as user) {
         <div class="current-user-badge">
           <span class="user-avatar-tiny">{{ user.prenom?.charAt(0) }}</span>
           <span class="user-name-tiny">{{ user.prenom }} ({{ user.role }})</span>
+          <button type="button" class="btn-logout-tiny" (click)="logout()" title="Se déconnecter">✕</button>
         </div>
       }
     </div>

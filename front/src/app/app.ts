@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { PollutionService } from './services/pollution.service';
 import { UserService } from './services/user.service';
 import { HttpTrafficService } from './services/http-traffic.service';
@@ -16,6 +16,7 @@ export class App {
   readonly pollutionService = inject(PollutionService);
   readonly userService = inject(UserService);
   readonly trafficService = inject(HttpTrafficService);
+  private readonly router = inject(Router);
 
   readonly isMockActive = this.trafficService.isMockActive;
   readonly currentUser = this.userService.currentUser;
@@ -24,5 +25,10 @@ export class App {
 
   toggleApiMode(): void {
     this.trafficService.toggleMockMode();
+  }
+
+  logout(): void {
+    this.userService.logout();
+    this.router.navigate(['/users'], { queryParams: { tab: 'login' } });
   }
 }

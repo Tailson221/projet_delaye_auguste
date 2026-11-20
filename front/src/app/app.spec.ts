@@ -38,14 +38,14 @@ describe('App', () => {
     expect(compiled.querySelector('router-outlet')).toBeTruthy();
   });
 
-  it('should render route links for pollutions, users and admin guard', async () => {
+  it('should render route links for pollutions and users', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await fixture.whenStable();
 
     const compiled = fixture.nativeElement as HTMLElement;
     const links = compiled.querySelectorAll('.main-tabs a');
-    expect(links.length).toBe(3);
+    expect(links.length).toBe(2);
     expect(links[0].getAttribute('href') || links[0].getAttribute('routerlink')).toBeTruthy();
   });
 

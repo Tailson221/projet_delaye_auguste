@@ -51,6 +51,6 @@ describe('authGuard', () => {
 
     const result = TestBed.runInInjectionContext(() => authGuard(route, state)) as any;
     expect(result.commands).toEqual(['/users']);
-    expect(result.extras.queryParams).toEqual({ returnUrl: '/admin', needAuth: 'true' });
+    expect(result.extras.queryParams).toEqual({ returnUrl: '/admin', needAuth: 'true', tab: 'login' });
   });
 });
